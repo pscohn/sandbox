@@ -1,0 +1,13 @@
+F.model: Post
+
+fields:
+  title: F.field.string(maxLength: 250)
+  content: F.field.text
+  author: F.field.relation(Author)
+
+validates:
+  not title.empty?
+    
+
+hasText?:
+  return not content.empty?

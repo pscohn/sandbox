@@ -1,0 +1,55 @@
+def append
+  expects foo:array, bar:any
+  returns [...foo, bar]
+end
+
+def is
+  expects foo:any, bar:any
+  returns foo == bar
+end
+
+def if
+  expects foo:expression, bar: block
+  when foo == true
+    returns run bar
+  else
+    returns nil
+  end
+end
+
+def format_bonus
+  expects bonus:number, is_aws:boolean
+  returns formatted_bonus:string
+  with bonus: 5, is_aws: true should_return "$0.5"
+
+  formatted_bonus:
+    case is_aws: "$0.#{bonus}"
+    else: "${bonus}c"
+end
+
+type worker
+
+end
+
+def process_bonuses(worker_bonuses)
+  expects worker_bonuses:array
+  returns processed_bonus:integer, pending_bonus:integer, unprocessable_bonus:integer
+
+  bonuses = { 'unprocessed': 0, 'processed': 0, 'unprocessable': 0 }
+  worker_bonuses.each def |bonus| bonuses[bonus.processed_state] += bonus.bonus_amount_cents end
+  processed_bonus = bonuses['processed'].to_f
+  bonuses.delete('processed')
+  pending_bonus = bonuses.values.sum
+  unprocessable_bonus = bonuses['unprocessable']
+end
+
+foo:array = [1, 2, 3]
+bar:any = 4
+bar = 'four'
+def bar type string value 'four'
+bar:array:immutable = [1,2]
+bar:string = 'four'
+set bar:type array
+set bar 4
+
+is foo bar
