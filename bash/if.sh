@@ -47,3 +47,10 @@ fi
 if [[ 'null124' =~ $re ]]; then
   echo '10'
 fi
+
+if [[ 'foo' == 'foo' ]]; then
+  if_var=foo
+else
+  if_var=bar
+fi
+echo "${if_var}"

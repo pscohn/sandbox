@@ -17,6 +17,20 @@ def if
   end
 end
 
+def pop
+  expects stack:array
+  returns popped:any
+
+  ...head, popped = stack
+end
+
+def max
+  expects array:array(number)
+  returns max:number
+
+  max =
+end
+
 def format_bonus
   expects bonus:number, is_aws:boolean
   returns formatted_bonus:string
