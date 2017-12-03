@@ -27,6 +27,8 @@ SDL_Surface* gKeyPressSurfaces[KEY_PRESS_SURFACE_TOTAL];
 SDL_Surface* gCurrentSurface = NULL;
 SDL_Surface* gHelloWorld = NULL; // image
 SDL_Renderer* gRenderer = NULL;
+SDL_Texture* mTexture;
+int mWidth, mHeight;
 TTF_Font *gFont = NULL;
 
 bool init() {
@@ -48,15 +50,15 @@ bool init() {
       success = false;
     } else {
       // create vsynced renderer for window
-			//gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
-			if( gRenderer != NULL )
+			gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED);
+			if( gRenderer == NULL )
 			{
 				printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
 				success = false;
 			} else {
         printf("hey");
 				//Initialize renderer color
-				// SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+				SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 
         // init png loading
         int imgFlags = IMG_INIT_PNG;
@@ -74,7 +76,7 @@ bool init() {
 
 
         //Get window surface
-        gScreenSurface = SDL_GetWindowSurface(gWindow);
+        //gScreenSurface = SDL_GetWindowSurface(gWindow);
     }
 
   }
@@ -96,13 +98,48 @@ SDL_Surface* loadSurface(std::string path) {
   return optimizedSurface;
 }
 
+SDL_Texture* loadTexture(std::string path) {
+  // final texture
+  SDL_Texture* newTexture = NULL;
+  SDL_Surface* loadedSurface = IMG_Load(path.c_str());
+  if (loadedSurface == NULL) {
+    printf("Unable to load image %s. SDL Error: %s\n", path.c_str(), IMG_GetError());
+  } else {
+    newTexture = SDL_CreateTextureFromSurface(gRenderer, loadedSurface);
+    if (newTexture == NULL) {
+      printf("Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError());
+    }
+    SDL_FreeSurface(loadedSurface);
+  }
+  return newTexture;
+}
+
 bool loadMedia() {
   bool success = true;
-  gHelloWorld = loadSurface("images/51niHMPxChL.jpg");
-  if (gHelloWorld == NULL) {
-    printf("Unable to load image %s! SDL Error: %s\n", "images/51niHMPxChL.jpg", SDL_GetError());
-    success = false;
-  }
+  //gHelloWorld = loadSurface("images/51niHMPxChL.jpg");
+  // if (gHelloWorld == NULL) {
+  //   printf("Unable to load image %s! SDL Error: %s\n", "images/51niHMPxChL.jpg", SDL_GetError());
+  //   success = false;
+  // }
+
+  gFont = TTF_OpenFont( "16_true_type_fonts/lazy.ttf", 28 );
+  SDL_Color textColor = { 0, 0, 0 };
+  SDL_Surface* textSurface = TTF_RenderText_Solid(gFont, "Hello", textColor);
+  if (textSurface == NULL) {
+     printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
+     success = false;
+  } else {
+     mTexture = SDL_CreateTextureFromSurface(gRenderer, textSurface);
+     if( mTexture == NULL ) {
+       printf( "Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError() );
+       success = false;
+     } else {
+       //Get image dimensions
+       mWidth = textSurface->w;
+       mHeight = textSurface->h;
+     }
+     SDL_FreeSurface( textSurface );
+   }
   return success;
 }
 
@@ -152,49 +189,38 @@ void run() {
     } else {
       bool quit = false;
       SDL_Event e; // event handler
+
       while (!quit) {
         poll_events(e, &quit);
-        gFont = TTF_OpenFont( "16_true_type_fonts/lazy.ttf", 28 );
-        SDL_Color textColor = { 0, 0, 0 };
-        SDL_Surface* textSurface = TTF_RenderText_Solid(gFont, "Hello", textColor);
-        if (textSurface == NULL) {
-           printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
-        } else {
-          // SDL_Texture* mTexture = SDL_CreateTextureFromSurface(gRenderer, textSurface);
-          // int mWidth, mHeight;
-          // if( mTexture == NULL ) {
-          //   printf( "Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError() );
-          // } else {
-          //   //Get image dimensions
-          //   mWidth = textSurface->w;
-          //   mHeight = textSurface->h;
-          // }
-          // SDL_FreeSurface( textSurface );
-          // SDL_RenderClear( gRenderer );
-          //
-          // //Render texture to screen
-          // SDL_RenderCopy( gRenderer, mTexture, NULL, NULL );
 
-          //mTexture.render( ( SCREEN_WIDTH - mWidth ) / 2, ( SCREEN_HEIGHT - mHeight ) / 2 );
-        	// SDL_Rect renderQuad = { ( SCREEN_WIDTH - mWidth ) / 2, ( SCREEN_HEIGHT - mHeight ) / 2, mWidth, mHeight };
-          //
-        	// //Set clip rendering dimensions
-          // SDL_Rect* clip = NULL;
-        	// if( clip != NULL )
-        	// {
-        	// 	renderQuad.w = clip->w;
-        	// 	renderQuad.h = clip->h;
-        	// }
 
-        	//Render to screen
-        	//SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, 0, NULL, SDL_FLIP_NONE );
+        // SDL_RenderClear( gRenderer );
 
-          //Update screen
-        //  SDL_RenderPresent( gRenderer );
+        // //Render texture to screen
+        SDL_RenderCopy( gRenderer, mTexture, NULL, NULL );
 
-        }
+        // clear screen
+        SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+        SDL_RenderClear( gRenderer );
+
+      	//Render current frame
+      	SDL_Rect renderQuad = { ( SCREEN_WIDTH - mWidth ) / 2, ( SCREEN_HEIGHT - mHeight ) / 2, mWidth, mHeight };
+
+      	 //Set clip rendering dimensions
+        SDL_Rect* clip = NULL;
+      	if( clip != NULL )
+      	{
+      		renderQuad.w = clip->w;
+      		renderQuad.h = clip->h;
+      	}
+
+      	SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, 0.0, NULL, SDL_FLIP_NONE );
+
+        //Update screen
+        SDL_RenderPresent( gRenderer );
+
         //SDL_BlitSurface(gHelloWorld, NULL, gScreenSurface, NULL);
-        SDL_UpdateWindowSurface(gWindow);
+        //SDL_UpdateWindowSurface(gWindow);
       }
     }
   }
