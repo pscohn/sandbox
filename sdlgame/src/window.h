@@ -43,7 +43,6 @@ public:
   				printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
   				success = false;
   			} else {
-          printf("hey");
   				//Initialize renderer color
   				SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
 
