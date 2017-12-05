@@ -1,12 +1,11 @@
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
-
 class Window {
 public:
     SDL_Window* window;
     SDL_Renderer* renderer;
+    int width;
+    int height;
     int someInt;
-    Window() : window(NULL), renderer(NULL), someInt(0) {
+    Window() : window(NULL), width(640), height(480), renderer(NULL), someInt(0) {
     }
 
     void set(int integer) {
@@ -26,14 +25,13 @@ public:
             printf("SDL could not intialize. SDL_Error: %s\n", SDL_GetError());
             success = false;
         } else {
-            if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
-            {
+            if (!SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) ) {
                 printf( "Warning: Linear texture filtering not enabled!" );
             }
 
             // Create window
-            window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
-                                      SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+            window = SDL_CreateWindow("SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width,
+                                      height, SDL_WINDOW_SHOWN);
             if (window == NULL) {
                 printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
                 success = false;

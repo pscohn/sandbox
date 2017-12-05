@@ -2,12 +2,16 @@
 #include "window.h"
 #include "button.h"
 #include "label.h"
+#include "floop.h"
 
 class Game {
 public:
     Window window;
     std::vector<Button> buttons;
     std::vector<Label> labels;
+    Label floopLabel;
+    Label newFloop;
+    Floop floops;
     TTF_Font *gFont;
 
     Game() {
@@ -45,15 +49,21 @@ public:
 
         button.setTexture(hello);
         addButton(button);
+        //
+        // Label label;
+        // if (!label.create("Floops: 0", (SDL_Color){0, 0, 0}, gFont, window)) {
+        //     return false;
+        // }
+        // addLabel(label);
 
-        Label label;
-
-        SDL_Color textColor = {0, 0, 0};
-        if (!label.create("Hello", textColor, gFont, window)) {
+        if (!floopLabel.create("Floops: 0", (SDL_Color){0, 0, 0}, gFont, window)) {
             return false;
         }
 
-        addLabel(label);
+        newFloop.setPos(300, 400);
+        if (!newFloop.create("Add Floop", (SDL_Color){0, 0, 0}, gFont, window)) {
+            return false;
+        }
 
         return true;
     }
@@ -70,7 +80,10 @@ public:
         for (int i = 0; i < labels.size(); i++) {
             SDL_RenderCopy(window.renderer, labels[i].texture, NULL, &labels[i].renderQuad);
         }
+        SDL_RenderCopy(window.renderer, floopLabel.texture, NULL, &floopLabel.renderQuad);
+        SDL_RenderCopy(window.renderer, newFloop.texture, NULL, &newFloop.renderQuad);
     }
+
     void renderButtons() {
         for (int i = 0; i < buttons.size(); i++) {
             SDL_RenderCopy(window.renderer, buttons[i].texture, NULL, &buttons[i].renderQuad);
@@ -83,6 +96,10 @@ public:
         }
         for (int i = 0; i < labels.size(); i++) {
             labels[i].wasClicked(x, y);
+        }
+        if (newFloop.wasClicked(x, y)) {
+            floops.addFloop();
+            floopLabel.create(floops.display(), (SDL_Color){0, 0, 0}, gFont, window);
         }
     }
 };

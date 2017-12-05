@@ -14,17 +14,18 @@ public:
     SDL_Texture *texture;
     SDL_Color color;
 
-    Label() : width(100), height(100), x(200), y(200), text("Hello"), texture(NULL) {
+    Label() : width(100), height(100), x(200), y(200), texture(NULL) {
         printf("label constructor\n");
-        // why?
-        SDL_Rect quad = {x, y, width, height};
-        renderQuad = quad;
+        renderQuad.x = x;
+        renderQuad.y = y;
+        renderQuad.w = width;
+        renderQuad.h = height;
     }
 
-    bool create(std::string text, SDL_Color color, TTF_Font *font, Window window) {
-        text = text;
-        color = color;
-        SDL_Surface *textSurface = TTF_RenderText_Solid(font, "Hello", color);
+    bool create(std::string newText, SDL_Color newColor, TTF_Font *font, Window window) {
+        text = newText;
+        color = newColor;
+        SDL_Surface *textSurface = TTF_RenderText_Solid(font, text.c_str(), color);
         if (textSurface == NULL) {
             printf("Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError());
             return false;
@@ -47,22 +48,21 @@ public:
     }
 
     void debug() {
-        printf("%i, %i, %i, %i\n", width, height, x, y);
+        printf("w: %i, h: %i, x: %i, y: %i\n", width, height, x, y);
         if (texture == NULL) {
             printf("texture is null\n");
         }
     }
 
-    void setPos(int x, int y) {
-        x = x;
-        y = y;
+    void setPos(int newX, int newY) {
+        x = newX;
+        y = newY;
+        renderQuad.x = newX;
+        renderQuad.y = newY;
     }
 
     bool wasClicked(int clickX, int clickY) {
         bool wasClicked = doesIntersect(clickX, clickY, width, height, x, y);
-        if (wasClicked == true) {
-            printf("ha\n");
-        }
         return wasClicked;
     }
 };
