@@ -13,6 +13,9 @@ void poll_events(SDL_Event e, bool* quit, Game* game) {
             *quit = true;
         } else if (e.type == SDL_KEYDOWN) {
             switch (e.key.keysym.sym) {
+            case SDLK_q:
+                *quit = true;
+                break;
             case SDLK_UP:
                 printf("up\n");
                 break;

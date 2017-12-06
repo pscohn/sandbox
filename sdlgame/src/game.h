@@ -10,7 +10,9 @@ public:
     std::vector<Button> buttons;
     std::vector<Label> labels;
     Label floopLabel;
+    Label flooperLabel;
     Label newFloop;
+    Label buyFlooper;
     Floop floops;
     TTF_Font *gFont;
 
@@ -37,7 +39,7 @@ public:
             return false;
         }
 
-        gFont = TTF_OpenFont("fonts/open-sans/OpenSans-Regular.ttf", 38);
+        gFont = TTF_OpenFont("fonts/open-sans/OpenSans-Regular.ttf", 18);
 
         Button button;
         SDL_Texture *hello = loadTexture("images/51niHMPxChL.jpg", window);
@@ -51,17 +53,27 @@ public:
         addButton(button);
         //
         // Label label;
-        // if (!label.create("Floops: 0", (SDL_Color){0, 0, 0}, gFont, window)) {
+        // if (!label.create("Floops: 0", (SDL_Color){0, 0, 0}, gFont, &window)) {
         //     return false;
         // }
         // addLabel(label);
 
-        if (!floopLabel.create("Floops: 0", (SDL_Color){0, 0, 0}, gFont, window)) {
+        if (!floopLabel.create("Floops: 0", (SDL_Color){0, 0, 0}, gFont, &window)) {
             return false;
         }
 
-        newFloop.setPos(300, 400);
-        if (!newFloop.create("Add Floop", (SDL_Color){0, 0, 0}, gFont, window)) {
+        flooperLabel.setPos(400, 300);
+        if (!flooperLabel.create(floops.flooperLabel(), (SDL_Color){0, 0, 0}, gFont, &window)) {
+            return false;
+        }
+
+        newFloop.setPos(100, 400);
+        if (!newFloop.create("Add Floop", (SDL_Color){0, 0, 0}, gFont, &window)) {
+            return false;
+        }
+
+        buyFlooper.setPos(400, 400);
+        if (!buyFlooper.create(floops.buyFlooperLabel(), (SDL_Color){0, 0, 0}, gFont, &window)) {
             return false;
         }
 
@@ -80,8 +92,12 @@ public:
         for (int i = 0; i < labels.size(); i++) {
             SDL_RenderCopy(window.renderer, labels[i].texture, NULL, &labels[i].renderQuad);
         }
+        floops.workFloopers();
+        floopLabel.updateText(floops.display());
         SDL_RenderCopy(window.renderer, floopLabel.texture, NULL, &floopLabel.renderQuad);
+        SDL_RenderCopy(window.renderer, flooperLabel.texture, NULL, &flooperLabel.renderQuad);
         SDL_RenderCopy(window.renderer, newFloop.texture, NULL, &newFloop.renderQuad);
+        SDL_RenderCopy(window.renderer, buyFlooper.texture, NULL, &buyFlooper.renderQuad);
     }
 
     void renderButtons() {
@@ -99,7 +115,13 @@ public:
         }
         if (newFloop.wasClicked(x, y)) {
             floops.addFloop();
-            floopLabel.create(floops.display(), (SDL_Color){0, 0, 0}, gFont, window);
+            floopLabel.create(floops.display(), (SDL_Color){0, 0, 0}, gFont, &window);
+        }
+        if (buyFlooper.wasClicked(x, y) && floops.num >= floops.flooperCost()) {
+            floops.buyFlooper();
+            floopLabel.updateText(floops.display());
+            buyFlooper.updateText(floops.buyFlooperLabel());
+            flooperLabel.updateText(floops.flooperLabel());
         }
     }
 };
