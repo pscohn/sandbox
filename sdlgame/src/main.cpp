@@ -41,8 +41,7 @@ void render(Game* game) {
     // clear screen
     SDL_RenderClear( game->window.renderer );
 
-    game->renderButtons();
-    game->renderLabels();
+    game->render();
 
     //Update screen
     SDL_RenderPresent( game->window.renderer );

@@ -4,6 +4,10 @@
 #include "button.h"
 #include "label.h"
 #include "floop.h"
+#include "timer.h"
+
+const int SCREEN_FPS = 60;
+const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
 class Game {
 public:
@@ -20,9 +24,17 @@ public:
     Uint32 startTime;
     std::stringstream timeText;
 
+    // fps counter
+    Timer fpsTimer;
+    Timer capTimer;
+    std::stringstream fpsText;
+    int countedFrames;
+    Label fpsLabel;
+
     Game() {
         printf("Game constructor called\n");
         startTime = 0;
+        countedFrames = 0;
     }
 
     ~Game() {
@@ -81,6 +93,12 @@ public:
             return false;
         }
 
+        fpsTimer.start();
+        fpsLabel.setPos(200, 150);
+        if (!fpsLabel.create("fps: 0", (SDL_Color){0, 0, 0}, gFont, &window)) {
+            return false;
+        }
+
         newFloop.setPos(100, 400);
         if (!newFloop.create("Add Floop", (SDL_Color){0, 0, 0}, gFont, &window)) {
             return false;
@@ -102,6 +120,16 @@ public:
         labels.push_back(b);
     }
 
+    void render() {
+        capTimer.start();
+        renderButtons();
+        renderLabels();
+        int frameTicks = capTimer.getTicks();
+        if (frameTicks < SCREEN_TICKS_PER_FRAME) {
+            SDL_Delay(SCREEN_TICKS_PER_FRAME - frameTicks);
+        }
+    }
+
     void renderLabels() {
         for (int i = 0; i < labels.size(); i++) {
             SDL_RenderCopy(window.renderer, labels[i].texture, NULL, &labels[i].renderQuad);
@@ -117,6 +145,13 @@ public:
         timeText << "Millseconds since startTime: " << SDL_GetTicks() - startTime;
         timeLabel.updateText(timeText.str());
         SDL_RenderCopy(window.renderer, timeLabel.texture, NULL, &timeLabel.renderQuad);
+
+        float avgFps = countedFrames / (fpsTimer.getTicks() / 1000.f);
+        countedFrames++;
+        fpsText.str("");
+        fpsText << "fps: " << avgFps;
+        fpsLabel.updateText(fpsText.str());
+        SDL_RenderCopy(window.renderer, fpsLabel.texture, NULL, &fpsLabel.renderQuad);
     }
 
     void renderButtons() {
