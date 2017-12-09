@@ -1,4 +1,5 @@
 #include <vector>
+#include <sstream>
 #include "window.h"
 #include "button.h"
 #include "label.h"
@@ -13,11 +14,15 @@ public:
     Label flooperLabel;
     Label newFloop;
     Label buyFlooper;
+    Label timeLabel;
     Floop floops;
     TTF_Font *gFont;
+    Uint32 startTime;
+    std::stringstream timeText;
 
     Game() {
         printf("Game constructor called\n");
+        startTime = 0;
     }
 
     ~Game() {
@@ -29,6 +34,10 @@ public:
         IMG_Quit();
         SDL_Quit();
         // need to free textures/buttons?
+    }
+
+    void setStartTime() {
+        startTime = SDL_GetTicks();
     }
 
     bool init() {
@@ -67,6 +76,11 @@ public:
             return false;
         }
 
+        timeLabel.setPos(200, 100);
+        if (!timeLabel.create("Time: 0", (SDL_Color){0, 0, 0}, gFont, &window)) {
+            return false;
+        }
+
         newFloop.setPos(100, 400);
         if (!newFloop.create("Add Floop", (SDL_Color){0, 0, 0}, gFont, &window)) {
             return false;
@@ -98,6 +112,11 @@ public:
         SDL_RenderCopy(window.renderer, flooperLabel.texture, NULL, &flooperLabel.renderQuad);
         SDL_RenderCopy(window.renderer, newFloop.texture, NULL, &newFloop.renderQuad);
         SDL_RenderCopy(window.renderer, buyFlooper.texture, NULL, &buyFlooper.renderQuad);
+
+        timeText.str("");
+        timeText << "Millseconds since startTime: " << SDL_GetTicks() - startTime;
+        timeLabel.updateText(timeText.str());
+        SDL_RenderCopy(window.renderer, timeLabel.texture, NULL, &timeLabel.renderQuad);
     }
 
     void renderButtons() {

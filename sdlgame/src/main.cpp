@@ -22,6 +22,9 @@ void poll_events(SDL_Event e, bool* quit, Game* game) {
             case SDLK_j:
                 printf("j\n");
                 break;
+            case SDLK_RETURN:
+                game->setStartTime();
+                break;
             default:
                 printf("keypress: %i\n", e.key.keysym.sym);
                 break;
