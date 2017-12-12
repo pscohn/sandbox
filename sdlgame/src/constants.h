@@ -1,0 +1,10 @@
+#ifndef CONSTANTS_H_
+#define CONSTANTS_H_
+
+#define LEVEL_WIDTH 1280
+#define LEVEL_HEIGHT 960
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 480
+
+
+#endif

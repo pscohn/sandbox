@@ -21,7 +21,7 @@ public:
 
     bool init() {
         bool success = true;
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
             printf("SDL could not intialize. SDL_Error: %s\n", SDL_GetError());
             success = false;
         } else {
@@ -54,6 +54,13 @@ public:
                         success = false;
                     }
 
+                    // init sounds
+                    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+                        printf("SDL_Mixer could not initialize: %s\n", Mix_GetError());
+                        success = false;
+                    }
+
+                    // init fonts
                     if (TTF_Init() == -1) {
                         printf("SDL_ttf could not initialize: %s\n", TTF_GetError());
                         success = false;

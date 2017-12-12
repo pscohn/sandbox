@@ -1,5 +1,5 @@
 CC = g++
-LIB = -lSDL2 -lSDL2_image -lSDL2_ttf
+LIB = -lSDL2 -lSDL2_image -lsdl2_mixer -lSDL2_ttf
 
 game.o: src/main.cpp
 	$(CC) src/main.cpp $(LIB) -o game

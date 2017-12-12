@@ -1,10 +1,20 @@
+//#include <sdl2/SdL.h>
+#include <sdl2_image/SDL_image.h>
+#include <sdl2_mixer/SDL_mixer.h>
+#include <SDL2_ttf/SDL_ttf.h>
+#include <stdio.h>
+#include <string>
 #include <vector>
 #include <sstream>
+#include "constants.h"
 #include "window.h"
 #include "button.h"
 #include "label.h"
 #include "floop.h"
 #include "timer.h"
+#include "player.h"
+#include "piano.h"
+#include "utils.h"
 
 const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
@@ -14,6 +24,11 @@ public:
     Window window;
     std::vector<Button> buttons;
     std::vector<Label> labels;
+
+    Piano piano;
+    Player player;
+    SDL_Rect camera;
+    SDL_Texture* bg;
     Label floopLabel;
     Label flooperLabel;
     Label newFloop;
@@ -44,6 +59,7 @@ public:
         gFont = NULL;
         TTF_Quit();
         IMG_Quit();
+        Mix_Quit();
         SDL_Quit();
         // need to free textures/buttons?
     }
@@ -62,16 +78,15 @@ public:
 
         gFont = TTF_OpenFont("fonts/open-sans/OpenSans-Regular.ttf", 18);
 
-        Button button;
-        SDL_Texture *hello = loadTexture("images/51niHMPxChL.jpg", window);
-        if (hello == NULL) {
-            printf("Unable to load image %s! SDL Error: %s\n",
-                   "images/51niHMPxChL.jpg", SDL_GetError());
-            return false;
-        }
+        camera.x = 0;
+        camera.y = 0;
+        camera.w = SCREEN_WIDTH;
+        camera.h = SCREEN_HEIGHT;
 
-        button.setTexture(hello);
-        addButton(button);
+        player.loadTexture(&window);
+
+        bg = loadTexture("images/bg.png", window);
+
         //
         // Label label;
         // if (!label.create("Floops: 0", (SDL_Color){0, 0, 0}, gFont, &window)) {
@@ -94,7 +109,7 @@ public:
         }
 
         fpsTimer.start();
-        fpsLabel.setPos(200, 150);
+        fpsLabel.setPos(10, 10);
         if (!fpsLabel.create("fps: 0", (SDL_Color){0, 0, 0}, gFont, &window)) {
             return false;
         }
@@ -109,7 +124,24 @@ public:
             return false;
         }
 
+        if (!piano.loadSounds()) {
+            return false;
+        }
+
         return true;
+    }
+
+    void run() {
+        if (init()) {
+            printf("init done\n");
+            bool quit = false;
+            SDL_Event e; // event handler
+
+            while (!quit) {
+                poll_events(e, &quit);
+                render();
+            }
+        }
     }
 
     void addButton(Button b) {
@@ -120,14 +152,65 @@ public:
         labels.push_back(b);
     }
 
+    void poll_events(SDL_Event e, bool* quit) {
+        while (SDL_PollEvent(&e) != 0) {
+            player.handleEvent(e);
+            if (e.type == SDL_QUIT) {
+                printf("goodbye\n");
+                *quit = true;
+            } else if (e.type == SDL_KEYDOWN) {
+                if (piano.isOpen) {
+                    piano.checkEvent(e.key.keysym.sym);
+                }
+                switch (e.key.keysym.sym) {
+                case SDLK_q:
+                    *quit = true;
+                    break;
+                case SDLK_UP:
+                    break;
+                case SDLK_RETURN:
+                    setStartTime();
+                    break;
+                default:
+                    break;
+                }
+            } else if (e.type == SDL_MOUSEBUTTONDOWN) {
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+                checkButtonsClicked(x, y);
+            }
+        }
+    }
+
     void render() {
+        // clear screen
+        SDL_RenderClear(window.renderer);
+
         capTimer.start();
+
+        player.move();
+        camera.x = (player.posX + player.w / 2) - SCREEN_WIDTH / 2;
+        camera.y = (player.posY + player.h / 2) - SCREEN_HEIGHT / 2;
+        if (camera.x < 0) camera.x = 0;
+        if (camera.y < 0) camera.y = 0;
+        if (camera.x > LEVEL_WIDTH - camera.w) camera.x = LEVEL_WIDTH - camera.w;
+        if (camera.y > LEVEL_HEIGHT - camera.h) camera.y = LEVEL_HEIGHT - camera.h;
+
+        SDL_Rect renderQuad = {0, 0, camera.w, camera.h};
+        SDL_RenderCopyEx(window.renderer, bg, &camera, &renderQuad, 0.0, NULL, SDL_FLIP_NONE);
+
+        player.render(&window, camera.x, camera.y);
+
         renderButtons();
         renderLabels();
+
         int frameTicks = capTimer.getTicks();
         if (frameTicks < SCREEN_TICKS_PER_FRAME) {
             SDL_Delay(SCREEN_TICKS_PER_FRAME - frameTicks);
         }
+
+        //Update screen
+        SDL_RenderPresent(window.renderer);
     }
 
     void renderLabels() {
