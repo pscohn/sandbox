@@ -46,6 +46,11 @@ public:
                     //Initialize renderer color
                     SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
 
+                    // set scale quality
+                    if(!SDL_SetHint (SDL_HINT_RENDER_SCALE_QUALITY, "0")) {
+                        printf("Hint not set: %s\n", SDL_GetError());
+                    }
+
                     // init png loading
                     int imgFlags = IMG_INIT_PNG;
                     printf("Image flags: %i\n", imgFlags);

@@ -42,7 +42,6 @@ public:
     }
 
     void render(Window *window, int camX, int camY) {
-        printf("camY %i\n", camY);
         SDL_Rect renderQuad = {posX - camX, posY - camY, w, h};
         SDL_RenderCopy(window->renderer, texture, NULL, &renderQuad);
     }

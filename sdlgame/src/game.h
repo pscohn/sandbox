@@ -2,6 +2,7 @@
 #include <sdl2_image/SDL_image.h>
 #include <sdl2_mixer/SDL_mixer.h>
 #include <SDL2_ttf/SDL_ttf.h>
+#include <fstream>
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -15,6 +16,7 @@
 #include "player.h"
 #include "piano.h"
 #include "utils.h"
+#include "tile.h"
 
 const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
@@ -27,8 +29,13 @@ public:
 
     Piano piano;
     Player player;
+
+    Tile* tiles[TOTAL_TILES];
     SDL_Rect camera;
+    SDL_Texture* tileTexture;
     SDL_Texture* bg;
+    SDL_Rect tileClips[ TOTAL_TILE_SPRITES ];
+
     Label floopLabel;
     Label flooperLabel;
     Label newFloop;
@@ -68,6 +75,61 @@ public:
         startTime = SDL_GetTicks();
     }
 
+    bool setTiles() {
+        bool tilesLoaded = true;
+        int x = 0, y = 0; // tile offsets
+        std::ifstream map("gb.map");
+        if (!map.is_open()) {
+            printf("Unable to load map file\n");
+            tilesLoaded = false;
+        } else {
+            for (int i = 0; i < TOTAL_TILES; i++) {
+                int tileType = -1;
+                map >> tileType;
+                if (tileType == -1) {
+                    tileType = 41;
+                }
+                if (map.fail()) {
+                    // stop loading map
+                    printf("Error loading map, unexpected EOF\n");
+                    tilesLoaded = false;
+                    break;
+                }
+
+                // check if number is valid
+                if ((tileType >= 0) && (tileType < TOTAL_TILE_SPRITES)) {
+                    tiles[i] = new Tile(x, y, tileType);
+                } else {
+                    printf("Invalid tile number at %d\n", i);
+                    tilesLoaded = false;
+                    break;
+                }
+                x += TILE_WIDTH * SPRITE_SCALE;
+                if (x >= LEVEL_WIDTH * SPRITE_SCALE) {
+                    x = 0;
+                    y += TILE_HEIGHT * SPRITE_SCALE;
+                }
+            }
+            if (tilesLoaded) {
+                int x = 0, y = 0;
+                for (int i = 0; i < TOTAL_TILE_SPRITES; i++) {
+                    tileClips[i].x = x;
+                    tileClips[i].y = y;
+                    tileClips[i].w = TILE_WIDTH;
+                    tileClips[i].h = TILE_HEIGHT;
+                    x += TILE_WIDTH;
+                    if (x >= 40 * TILE_WIDTH) {
+                        // total width of sprite sheet
+                        x = 0;
+                        y += TILE_HEIGHT;
+                    }
+                }
+            }
+        }
+        map.close(); // close file
+        return tilesLoaded;
+    }
+
     bool init() {
         // returns success
 
@@ -86,6 +148,13 @@ public:
         player.loadTexture(&window);
 
         bg = loadTexture("images/bg.png", window);
+
+        // add error handling
+        tileTexture = loadTexture("grayscale.png", window);
+        if (!setTiles()) {
+            printf("failed to load tile set\n");
+            return false;
+        }
 
         //
         // Label label;
@@ -196,8 +265,16 @@ public:
         if (camera.x > LEVEL_WIDTH - camera.w) camera.x = LEVEL_WIDTH - camera.w;
         if (camera.y > LEVEL_HEIGHT - camera.h) camera.y = LEVEL_HEIGHT - camera.h;
 
-        SDL_Rect renderQuad = {0, 0, camera.w, camera.h};
-        SDL_RenderCopyEx(window.renderer, bg, &camera, &renderQuad, 0.0, NULL, SDL_FLIP_NONE);
+        //SDL_Rect renderQuad = {0, 0, camera.w, camera.h};
+        //SDL_RenderCopyEx(window.renderer, bg, &camera, &renderQuad, 0.0, NULL, SDL_FLIP_NONE);
+
+        // render level
+        int total = 0;
+        for (int i = 0; i < TOTAL_TILES; i++) {
+            bool rendered = tiles[i]->render(&window, tileTexture, &tileClips[tiles[i]->type], camera);
+            if (rendered) total++;
+        }
+        printf("Tiles rendered: %i\n", total);
 
         player.render(&window, camera.x, camera.y);
 
