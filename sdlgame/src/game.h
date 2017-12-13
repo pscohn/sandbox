@@ -78,7 +78,7 @@ public:
     bool setTiles() {
         bool tilesLoaded = true;
         int x = 0, y = 0; // tile offsets
-        std::ifstream map("gb.map");
+        std::ifstream map("overworld.csv");
         if (!map.is_open()) {
             printf("Unable to load map file\n");
             tilesLoaded = false;
@@ -105,7 +105,7 @@ public:
                     break;
                 }
                 x += TILE_WIDTH * SPRITE_SCALE;
-                if (x >= LEVEL_WIDTH * SPRITE_SCALE) {
+                if (x >= LEVEL_WIDTH) {
                     x = 0;
                     y += TILE_HEIGHT * SPRITE_SCALE;
                 }
@@ -118,7 +118,7 @@ public:
                     tileClips[i].w = TILE_WIDTH;
                     tileClips[i].h = TILE_HEIGHT;
                     x += TILE_WIDTH;
-                    if (x >= 40 * TILE_WIDTH) {
+                    if (x >= TILE_COLUMNS * TILE_WIDTH) {
                         // total width of sprite sheet
                         x = 0;
                         y += TILE_HEIGHT;
@@ -150,7 +150,7 @@ public:
         bg = loadTexture("images/bg.png", window);
 
         // add error handling
-        tileTexture = loadTexture("grayscale.png", window);
+        tileTexture = loadTexture("Overworld.png", window);
         if (!setTiles()) {
             printf("failed to load tile set\n");
             return false;
