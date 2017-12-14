@@ -1,18 +1,11 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
-#define TILE_WIDTH 16
-#define TILE_HEIGHT 16
-#define TILES_X 100
-#define TILES_Y 100
-#define TOTAL_TILES 10000 // number of tiles in the level
-#define TOTAL_TILE_SPRITES 1440 //400
-#define TILE_COLUMNS 40
-#define SPRITE_SCALE 4
-
-#define LEVEL_WIDTH (TILE_WIDTH * TILES_X * SPRITE_SCALE)
-#define LEVEL_HEIGHT (TILE_HEIGHT * TILES_Y * SPRITE_SCALE)
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
+
+#define TILE_WIDTH 16
+#define TILE_HEIGHT 16
+#define SPRITE_SCALE 4
 
 #endif

@@ -1,3 +1,4 @@
+#include "texture.h"
 
 class Player {
 public:
@@ -7,8 +8,7 @@ public:
     int speed;
 
     static const int velocity = 5;
-    SDL_Texture* texture;
-    int w, h;
+    Texture texture;
     int posX, posY;
     int velX, velY;
     Player() : health(100), attack(10), defense(10), speed(100) {
@@ -16,13 +16,10 @@ public:
         posY = 0;
         velX = 0;
         velY = 0;
-        w = 50;
-        h = 50;
-        texture = NULL;
     }
 
     ~Player() {
-        texture = NULL;
+        texture.free();
     }
     void debug() {
         printf("health: %i\n", health);
@@ -31,29 +28,30 @@ public:
         printf("speed: %i\n", speed);
     }
 
-    bool loadTexture(Window *window) {
-        texture = ::loadTexture("images/51niHMPxChL.jpg", *window);
-        if (texture == NULL) {
+    bool loadTexture(SDL_Renderer* renderer) {
+        texture.load("images/51niHMPxChL.jpg", renderer);
+        if (texture.texture == NULL) {
             printf("Unable to load image %s! SDL Error: %s\n",
                    "images/51niHMPxChL.jpg", SDL_GetError());
             return false;
         }
+        texture.width = 50;
+        texture.height = 50;
         return true;
     }
 
-    void render(Window *window, int camX, int camY) {
-        SDL_Rect renderQuad = {posX - camX, posY - camY, w, h};
-        SDL_RenderCopy(window->renderer, texture, NULL, &renderQuad);
+    void render(SDL_Renderer *renderer, int camX, int camY) {
+        texture.render(renderer, posX - camX, posY - camY);
     }
 
-    void move() {
+    void move(int mapWidth, int mapHeight) {
         posX += velX;
         posY += velY;
 
-        if ((posX < 0) || posX + w > LEVEL_WIDTH) {
+        if ((posX < 0) || posX + texture.width > mapWidth) {
             posX -= velX;
         }
-        if ((posY < 0) || posY + h > LEVEL_HEIGHT) {
+        if ((posY < 0) || posY + texture.height > mapHeight) {
             posY -= velY;
         }
     }

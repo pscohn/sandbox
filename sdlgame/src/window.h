@@ -44,7 +44,7 @@ public:
                     success = false;
                 } else {
                     //Initialize renderer color
-                    SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
+                    SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0x00, 0xFF );
 
                     // set scale quality
                     if(!SDL_SetHint (SDL_HINT_RENDER_SCALE_QUALITY, "0")) {
