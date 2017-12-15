@@ -1,4 +1,5 @@
 #include "texture.h"
+#include "map.h"
 
 class Player {
 public:
@@ -44,14 +45,31 @@ public:
         texture.render(renderer, posX - camX, posY - camY);
     }
 
-    void move(int mapWidth, int mapHeight) {
+    bool touchesWall(SDL_Rect box, Map* map) {
+        bool collision = false;
+        // optimize? it goes through ever tile
+        // in map even if not rendered
+        for (int i = 0; i < map->totalTiles; i++) {
+            if (map->tiles[i]->solid == true) {
+                if (checkCollision(box, map->tiles[i]->box)) {
+                    collision = true;
+                    break;
+                }
+            }
+        }
+        return collision;
+    }
+
+    void move(Map* map) {
         posX += velX;
         posY += velY;
 
-        if ((posX < 0) || posX + texture.width > mapWidth) {
+        SDL_Rect box = {posX, posY, texture.width, texture.height};
+
+        if ((posX < 0) || (posX + texture.width > map->totalWidth) || (touchesWall(box, map))) {
             posX -= velX;
         }
-        if ((posY < 0) || posY + texture.height > mapHeight) {
+        if ((posY < 0) || (posY + texture.height > map->totalHeight) || (touchesWall(box, map))) {
             posY -= velY;
         }
     }

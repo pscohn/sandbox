@@ -5,7 +5,7 @@ public:
     int width;
     int height;
     int someInt;
-    Window() : window(NULL), width(640), height(480), renderer(NULL), someInt(0) {
+    Window() : window(NULL), width(SCREEN_WIDTH), height(SCREEN_HEIGHT), renderer(NULL), someInt(0) {
     }
 
     void set(int integer) {

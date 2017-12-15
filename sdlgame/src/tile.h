@@ -7,12 +7,14 @@ class Tile {
 public:
     SDL_Rect box;
     int type;
-    Tile(int x, int y, int tileType) {
+    bool solid;
+    Tile(int x, int y, int tileType, bool collides) {
         box.x = x;
         box.y = y;
         box.w = TILE_WIDTH * SPRITE_SCALE;
         box.h = TILE_HEIGHT * SPRITE_SCALE;
         type = tileType;
+        solid = collides;
     }
 
     void debug() {

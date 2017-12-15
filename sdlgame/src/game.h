@@ -23,6 +23,7 @@
 const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
+
 class Game {
 public:
     Window window;
@@ -82,12 +83,13 @@ public:
     void initGB() {
         // avoid duplicate work?
         tilesheet.init("grayscale.png", 400, 40, window.renderer);
-        map.init("gb.map", 100, 100, tilesheet.numTiles);
+        map.init("gb.map", 100, 100, tilesheet.numTiles, NULL, 0);
     }
 
     void initOverworld() {
+        int collisionTiles[15] = {564, 565, 566, 364, 404, 444, 484, 485, 524, 525, 366, 406, 446, 486, 526};
         tilesheet.init("Overworld.png", 1440, 40, window.renderer);
-        map.init("overworld.csv", 100, 100, tilesheet.numTiles);
+        map.init("overworld.csv", 100, 100, tilesheet.numTiles, &collisionTiles[0], 15);
     }
 
     bool init() {
@@ -211,7 +213,7 @@ public:
 
         capTimer.start();
 
-        player.move(map.totalWidth, map.totalHeight);
+        player.move(&map);
         camera.x = (player.posX + player.texture.width / 2) - SCREEN_WIDTH / 2;
         camera.y = (player.posY + player.texture.height / 2) - SCREEN_HEIGHT / 2;
         if (camera.x < 0) camera.x = 0;

@@ -24,7 +24,8 @@ public:
         }
     }
 
-    void init(std::string map, int tilesXNum, int tilesYNum, int totalTileSpritesNum) {
+    void init(std::string map, int tilesXNum, int tilesYNum, int totalTileSpritesNum, int* collisionTiles,
+              int numCollisionTiles) {
         path = map;
         totalTiles = tilesXNum * tilesYNum;
         tilesX = tilesXNum;
@@ -35,10 +36,10 @@ public:
         totalTileSprites = totalTileSpritesNum;
 
         tiles.reserve(totalTiles);
-        setTiles();
+        setTiles(collisionTiles, numCollisionTiles);
     }
 
-    bool setTiles() {
+    bool setTiles(int* collisionTiles, int numCollisionTiles) {
         bool tilesLoaded = true;
         int x = 0, y = 0; // tile offsets
         std::ifstream map(path);
@@ -58,7 +59,16 @@ public:
 
                 // check if number is valid
                 if ((tileType >= 0) && (tileType < totalTileSprites)) {
-                    tiles[i] = new Tile(x, y, tileType);
+                    bool collides = false;
+                    for (int j = 0; j < numCollisionTiles; j++) {
+                        // could optimize with tilesheet format that
+                        // includes collision data?
+                        if (tileType == collisionTiles[j]) {
+                            collides = true;
+                            break;
+                        }
+                    }
+                    tiles[i] = new Tile(x, y, tileType, collides);
                 } else {
                     printf("Invalid tile number at %d\n", i);
                     tilesLoaded = false;
