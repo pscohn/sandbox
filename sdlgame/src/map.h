@@ -20,7 +20,8 @@ public:
     void render(SDL_Renderer* renderer, SDL_Texture* spritesheet, std::vector<SDL_Rect>& tileClips, SDL_Rect camera) {
         // why reference parameter
         for (int i = 0; i < totalTiles; i++) {
-            tiles[i]->render(renderer, spritesheet, &tileClips[tiles[i]->type], camera);
+            bool rendered = tiles[i]->render(renderer, spritesheet, &tileClips[tiles[i]->type], camera);
+            tiles[i]->wasRendered = rendered;
         }
     }
 

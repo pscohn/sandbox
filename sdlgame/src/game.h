@@ -2,6 +2,7 @@
 #include <sdl2_image/SDL_image.h>
 #include <sdl2_mixer/SDL_mixer.h>
 #include <SDL2_ttf/SDL_ttf.h>
+#include "Tmx.h"
 #include <fstream>
 #include <stdio.h>
 #include <string>
@@ -19,6 +20,7 @@
 #include "tilesheet.h"
 #include "tile.h"
 #include "map.h"
+
 
 const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
@@ -40,6 +42,9 @@ public:
     Tilesheet gbsheet;
     Map map;
     Map* currentMap;
+    Tmx::Map *tmxmap;
+
+    bool paused;
 
     Label floopLabel;
     Label flooperLabel;
@@ -62,6 +67,69 @@ public:
         printf("Game constructor called\n");
         startTime = 0;
         countedFrames = 0;
+        paused = false;
+        tmxmap = new Tmx::Map();
+        tmxmap->ParseFile("./overworld2.tmx");
+
+        if (tmxmap->HasError())
+        {
+            printf("error code: %d\n", tmxmap->GetErrorCode());
+            printf("error text: %s\n", tmxmap->GetErrorText().c_str());
+
+            // return tmxmap->GetErrorCode();
+        }
+        printf("Width: %d\n", tmxmap->GetWidth());
+        printf("Height: %d\n", tmxmap->GetHeight());
+        printf("Tile Width: %d\n", tmxmap->GetTileWidth());
+        printf("Tile Height: %d\n", tmxmap->GetTileHeight());
+        printf("Layers: %d\n", tmxmap->GetNumTileLayers());
+        for (int i = 0; i < tmxmap->GetNumTileLayers(); ++i) {
+            printf("Layer : %02d/%s \n", i, tmxmap->GetTileLayer(i)->GetName().c_str());
+            const Tmx::TileLayer *tileLayer = tmxmap->GetTileLayer(i);
+
+            for (int y = 0; y < tileLayer->GetHeight(); ++y)
+            {
+                for (int x = 0; x < tileLayer->GetWidth(); ++x)
+                {
+                    if (tileLayer->GetTileTilesetIndex(x, y) == -1)
+                    {
+                        printf("........    ");
+                    }
+                    else
+                    {
+                        // Get the tile's id and gid.
+                        printf("%03d(%03d)", tileLayer->GetTileId(x, y), tileLayer->GetTileGid(x, y));
+
+                        // Find a tileset for that id.
+                        //const Tmx::Tileset *tileset = map->FindTileset(layer->GetTileId(x, y));
+                        if (tileLayer->IsTileFlippedHorizontally(x, y))
+                        {
+                            printf("h");
+                        }
+                        else
+                        {
+                            printf(" ");
+                        }
+                        if (tileLayer->IsTileFlippedVertically(x, y))
+                        {
+                            printf("v");
+                        }
+                        else
+                        {
+                            printf(" ");
+                        }
+                        if (tileLayer->IsTileFlippedDiagonally(x, y))
+                        {
+                            printf("d ");
+                        }
+                        else
+                        {
+                            printf("  ");
+                        }
+                    }
+                }
+            }
+        }
     }
 
     ~Game() {
@@ -84,9 +152,17 @@ public:
         // avoid duplicate work?
         tilesheet.init("grayscale.png", 400, 40, window.renderer);
         map.init("gb.map", 100, 100, tilesheet.numTiles, NULL, 0);
+        player.moveTo(0, 0);
+    }
+
+    void initCave() {
+        // 1092 to move
+        tilesheet.init("Overworld.png", 1440, 40, window.renderer);
+        map.init("cave.csv", 10, 10, tilesheet.numTiles, NULL, 0);
     }
 
     void initOverworld() {
+        // 487 move to cave
         int collisionTiles[15] = {564, 565, 566, 364, 404, 444, 484, 485, 524, 525, 366, 406, 446, 486, 526};
         tilesheet.init("Overworld.png", 1440, 40, window.renderer);
         map.init("overworld.csv", 100, 100, tilesheet.numTiles, &collisionTiles[0], 15);
@@ -191,6 +267,9 @@ public:
                 case SDLK_n:
                     initOverworld();
                     break;
+                case SDLK_p:
+                    paused = !paused;
+                    break;
                 case SDLK_UP:
                     break;
                 case SDLK_RETURN:
@@ -213,13 +292,15 @@ public:
 
         capTimer.start();
 
-        player.move(&map);
-        camera.x = (player.posX + player.texture.width / 2) - SCREEN_WIDTH / 2;
-        camera.y = (player.posY + player.texture.height / 2) - SCREEN_HEIGHT / 2;
-        if (camera.x < 0) camera.x = 0;
-        if (camera.y < 0) camera.y = 0;
-        if (camera.x > map.totalWidth - camera.w) camera.x = map.totalWidth - camera.w;
-        if (camera.y > map.totalHeight - camera.h) camera.y = map.totalHeight - camera.h;
+        if (!paused) {
+            player.move(&map);
+            camera.x = (player.posX + player.texture.width / 2) - SCREEN_WIDTH / 2;
+            camera.y = (player.posY + player.texture.height / 2) - SCREEN_HEIGHT / 2;
+            if (camera.x < 0) camera.x = 0;
+            if (camera.y < 0) camera.y = 0;
+            if (camera.x > map.totalWidth - camera.w) camera.x = map.totalWidth - camera.w;
+            if (camera.y > map.totalHeight - camera.h) camera.y = map.totalHeight - camera.h;
+        }
 
         //SDL_Rect renderQuad = {0, 0, camera.w, camera.h};
         //SDL_RenderCopyEx(window.renderer, bg, &camera, &renderQuad, 0.0, NULL, SDL_FLIP_NONE);
@@ -228,7 +309,7 @@ public:
 
         player.render(window.renderer, camera.x, camera.y);
 
-        renderButtons();
+        //renderButtons();
         renderLabels();
 
         int frameTicks = capTimer.getTicks();
@@ -241,20 +322,20 @@ public:
     }
 
     void renderLabels() {
-        for (int i = 0; i < labels.size(); i++) {
-            SDL_RenderCopy(window.renderer, labels[i].texture, NULL, &labels[i].renderQuad);
-        }
-        floops.workFloopers();
-        floopLabel.updateText(floops.display());
-        SDL_RenderCopy(window.renderer, floopLabel.texture, NULL, &floopLabel.renderQuad);
-        SDL_RenderCopy(window.renderer, flooperLabel.texture, NULL, &flooperLabel.renderQuad);
-        SDL_RenderCopy(window.renderer, newFloop.texture, NULL, &newFloop.renderQuad);
-        SDL_RenderCopy(window.renderer, buyFlooper.texture, NULL, &buyFlooper.renderQuad);
-
-        timeText.str("");
-        timeText << "Millseconds since startTime: " << SDL_GetTicks() - startTime;
-        timeLabel.updateText(timeText.str());
-        SDL_RenderCopy(window.renderer, timeLabel.texture, NULL, &timeLabel.renderQuad);
+        // for (int i = 0; i < labels.size(); i++) {
+        //     SDL_RenderCopy(window.renderer, labels[i].texture, NULL, &labels[i].renderQuad);
+        // }
+        // floops.workFloopers();
+        // floopLabel.updateText(floops.display());
+        // SDL_RenderCopy(window.renderer, floopLabel.texture, NULL, &floopLabel.renderQuad);
+        // SDL_RenderCopy(window.renderer, flooperLabel.texture, NULL, &flooperLabel.renderQuad);
+        // SDL_RenderCopy(window.renderer, newFloop.texture, NULL, &newFloop.renderQuad);
+        // SDL_RenderCopy(window.renderer, buyFlooper.texture, NULL, &buyFlooper.renderQuad);
+        //
+        // timeText.str("");
+        // timeText << "Millseconds since startTime: " << SDL_GetTicks() - startTime;
+        // timeLabel.updateText(timeText.str());
+        // SDL_RenderCopy(window.renderer, timeLabel.texture, NULL, &timeLabel.renderQuad);
 
         float avgFps = countedFrames / (fpsTimer.getTicks() / 1000.f);
         countedFrames++;

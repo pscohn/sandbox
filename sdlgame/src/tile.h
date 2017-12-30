@@ -8,6 +8,7 @@ public:
     SDL_Rect box;
     int type;
     bool solid;
+    bool wasRendered;
     Tile(int x, int y, int tileType, bool collides) {
         box.x = x;
         box.y = y;
@@ -15,6 +16,7 @@ public:
         box.h = TILE_HEIGHT * SPRITE_SCALE;
         type = tileType;
         solid = collides;
+        wasRendered = false;
     }
 
     void debug() {

@@ -30,14 +30,14 @@ public:
     }
 
     bool loadTexture(SDL_Renderer* renderer) {
-        texture.load("images/51niHMPxChL.jpg", renderer);
+        texture.load("link.png", renderer);
         if (texture.texture == NULL) {
             printf("Unable to load image %s! SDL Error: %s\n",
-                   "images/51niHMPxChL.jpg", SDL_GetError());
+                   "link.png", SDL_GetError());
             return false;
         }
-        texture.width = 50;
-        texture.height = 50;
+        texture.width = 15 * SPRITE_SCALE;
+        texture.height = 16 * SPRITE_SCALE;
         return true;
     }
 
@@ -47,12 +47,15 @@ public:
 
     bool touchesWall(SDL_Rect box, Map* map) {
         bool collision = false;
-        // optimize? it goes through ever tile
+        // optimize? it loops through ever tile
         // in map even if not rendered
         for (int i = 0; i < map->totalTiles; i++) {
-            if (map->tiles[i]->solid == true) {
+            if (map->tiles[i]->wasRendered == true && map->tiles[i]->solid == true) {
                 if (checkCollision(box, map->tiles[i]->box)) {
                     collision = true;
+                    if (map->tiles[i]->type == 487) {
+                        // change maps
+                    }
                     break;
                 }
             }
@@ -66,12 +69,19 @@ public:
 
         SDL_Rect box = {posX, posY, texture.width, texture.height};
 
-        if ((posX < 0) || (posX + texture.width > map->totalWidth) || (touchesWall(box, map))) {
+        bool collision = touchesWall(box, map);
+
+        if ((posX < 0) || (posX + texture.width > map->totalWidth) || collision) {
             posX -= velX;
         }
-        if ((posY < 0) || (posY + texture.height > map->totalHeight) || (touchesWall(box, map))) {
+        if ((posY < 0) || (posY + texture.height > map->totalHeight) || collision) {
             posY -= velY;
         }
+    }
+
+    void moveTo(int x, int y) {
+        posX = x;
+        posY = y;
     }
 
     void handleEvent(SDL_Event& e) {
