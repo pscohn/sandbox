@@ -69,7 +69,7 @@ public:
         countedFrames = 0;
         paused = false;
         tmxmap = new Tmx::Map();
-        tmxmap->ParseFile("./overworld2.tmx");
+        tmxmap->ParseFile("./overworld.tmx");
 
         if (tmxmap->HasError())
         {
@@ -83,53 +83,6 @@ public:
         printf("Tile Width: %d\n", tmxmap->GetTileWidth());
         printf("Tile Height: %d\n", tmxmap->GetTileHeight());
         printf("Layers: %d\n", tmxmap->GetNumTileLayers());
-        for (int i = 0; i < tmxmap->GetNumTileLayers(); ++i) {
-            printf("Layer : %02d/%s \n", i, tmxmap->GetTileLayer(i)->GetName().c_str());
-            const Tmx::TileLayer *tileLayer = tmxmap->GetTileLayer(i);
-
-            for (int y = 0; y < tileLayer->GetHeight(); ++y)
-            {
-                for (int x = 0; x < tileLayer->GetWidth(); ++x)
-                {
-                    if (tileLayer->GetTileTilesetIndex(x, y) == -1)
-                    {
-                        printf("........    ");
-                    }
-                    else
-                    {
-                        // Get the tile's id and gid.
-                        printf("%03d(%03d)", tileLayer->GetTileId(x, y), tileLayer->GetTileGid(x, y));
-
-                        // Find a tileset for that id.
-                        //const Tmx::Tileset *tileset = map->FindTileset(layer->GetTileId(x, y));
-                        if (tileLayer->IsTileFlippedHorizontally(x, y))
-                        {
-                            printf("h");
-                        }
-                        else
-                        {
-                            printf(" ");
-                        }
-                        if (tileLayer->IsTileFlippedVertically(x, y))
-                        {
-                            printf("v");
-                        }
-                        else
-                        {
-                            printf(" ");
-                        }
-                        if (tileLayer->IsTileFlippedDiagonally(x, y))
-                        {
-                            printf("d ");
-                        }
-                        else
-                        {
-                            printf("  ");
-                        }
-                    }
-                }
-            }
-        }
     }
 
     ~Game() {
@@ -151,21 +104,21 @@ public:
     void initGB() {
         // avoid duplicate work?
         tilesheet.init("grayscale.png", 400, 40, window.renderer);
-        map.init("gb.map", 100, 100, tilesheet.numTiles, NULL, 0);
+        map.init("gb.map", 100, 100, tilesheet.numTiles);
         player.moveTo(0, 0);
     }
 
     void initCave() {
         // 1092 to move
         tilesheet.init("Overworld.png", 1440, 40, window.renderer);
-        map.init("cave.csv", 10, 10, tilesheet.numTiles, NULL, 0);
+        map.init("cave.csv", 10, 10, tilesheet.numTiles);
     }
 
     void initOverworld() {
         // 487 move to cave
-        int collisionTiles[15] = {564, 565, 566, 364, 404, 444, 484, 485, 524, 525, 366, 406, 446, 486, 526};
+        //int collisionTiles[15] = {564, 565, 566, 364, 404, 444, 484, 485, 524, 525, 366, 406, 446, 486, 526};
         tilesheet.init("Overworld.png", 1440, 40, window.renderer);
-        map.init("overworld.csv", 100, 100, tilesheet.numTiles, &collisionTiles[0], 15);
+        //map.init("overworld.csv", 100, 100, tilesheet.numTiles);
     }
 
     bool init() {
@@ -293,20 +246,23 @@ public:
         capTimer.start();
 
         if (!paused) {
-            player.move(&map);
+            int totalWidth = tmxmap->GetWidth() * SPRITE_SCALE * TILE_WIDTH;
+            int totalHeight = tmxmap->GetHeight() * SPRITE_SCALE * TILE_HEIGHT;
+            int totalTiles = tmxmap->GetTileWidth() * tmxmap->GetTileHeight();
+            player.move(&map, totalWidth, totalHeight, totalTiles);
             camera.x = (player.posX + player.texture.width / 2) - SCREEN_WIDTH / 2;
             camera.y = (player.posY + player.texture.height / 2) - SCREEN_HEIGHT / 2;
             if (camera.x < 0) camera.x = 0;
             if (camera.y < 0) camera.y = 0;
-            if (camera.x > map.totalWidth - camera.w) camera.x = map.totalWidth - camera.w;
-            if (camera.y > map.totalHeight - camera.h) camera.y = map.totalHeight - camera.h;
+            if (camera.x >  totalWidth - camera.w) camera.x = totalWidth - camera.w;
+            if (camera.y > totalHeight - camera.h) camera.y = totalHeight - camera.h;
         }
 
         //SDL_Rect renderQuad = {0, 0, camera.w, camera.h};
         //SDL_RenderCopyEx(window.renderer, bg, &camera, &renderQuad, 0.0, NULL, SDL_FLIP_NONE);
 
-        map.render(window.renderer, tilesheet.texture.texture, tilesheet.tileClips, camera);
-
+        //map.render(window.renderer, tilesheet.texture.texture, tilesheet.tileClips, camera);
+        renderMap();
         player.render(window.renderer, camera.x, camera.y);
 
         //renderButtons();
@@ -319,6 +275,47 @@ public:
 
         //Update screen
         SDL_RenderPresent(window.renderer);
+    }
+
+    void renderMap() {
+
+        const Tmx::TileLayer *tileLayer = tmxmap->GetTileLayer(0);
+        const Tmx::Tileset *tileset = tmxmap->GetTileset(0);
+
+        for (int y = 0; y < tileLayer->GetHeight(); ++y) {
+            for (int x = 0; x < tileLayer->GetWidth(); ++x) {
+                if (tileLayer->GetTileTilesetIndex(x, y) == -1) {
+                } else {
+                    // Get the tile's id and gid.
+                    int tileId = tileLayer->GetTileId(x, y);
+                    //printf("%03d", tileId);
+                    SDL_Rect box =
+                    {x * SPRITE_SCALE * TILE_WIDTH, y * SPRITE_SCALE * TILE_HEIGHT, SPRITE_SCALE * TILE_WIDTH,
+                     SPRITE_SCALE * TILE_HEIGHT};
+                    SDL_Rect renderQuad = {box.x - camera.x, box.y - camera.y, box.w, box.h};
+                    if (checkCollision(camera, box)) {
+                        SDL_RenderCopy(window.renderer, tilesheet.texture.texture, &tilesheet.tileClips[tileId],
+                                       &renderQuad);
+                    }
+
+                    //printf("%03d(%03d)", tileLayer->GetTileId(x, y), tileLayer->GetTileGid(x, y));
+
+                    // Find a tileset for that id.
+                    //const Tmx::Tileset *tileset = map->FindTileset(layer->GetTileId(x, y));
+
+                    if (tileLayer->IsTileFlippedHorizontally(x, y)) {
+                    } else {
+                    }
+                    if (tileLayer->IsTileFlippedVertically(x, y)) {
+                    } else {
+                    }
+                    if (tileLayer->IsTileFlippedDiagonally(x, y)) {
+                    } else {
+                    }
+                }
+            }
+        }
+
     }
 
     void renderLabels() {

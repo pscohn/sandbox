@@ -36,7 +36,7 @@ public:
                    "link.png", SDL_GetError());
             return false;
         }
-        texture.width = 15 * SPRITE_SCALE;
+        texture.width = 10 * SPRITE_SCALE;
         texture.height = 16 * SPRITE_SCALE;
         return true;
     }
@@ -45,17 +45,17 @@ public:
         texture.render(renderer, posX - camX, posY - camY);
     }
 
-    bool touchesWall(SDL_Rect box, Map* map) {
+    bool touchesWall(SDL_Rect box, Map* map, int totalTiles) {
         bool collision = false;
-        // optimize? it loops through ever tile
+        // optimize? it loops through every tile
         // in map even if not rendered
-        for (int i = 0; i < map->totalTiles; i++) {
+        for (int i = 0; i < totalTiles; i++) {
             if (map->tiles[i]->wasRendered == true && map->tiles[i]->solid == true) {
                 if (checkCollision(box, map->tiles[i]->box)) {
                     collision = true;
-                    if (map->tiles[i]->type == 487) {
-                        // change maps
-                    }
+                    // if (map->tiles[i]->type == 487) {
+                    //     // change maps
+                    // }
                     break;
                 }
             }
@@ -63,18 +63,19 @@ public:
         return collision;
     }
 
-    void move(Map* map) {
+    void move(Map* map, int mapWidth, int mapHeight, int totalTiles) {
         posX += velX;
         posY += velY;
 
         SDL_Rect box = {posX, posY, texture.width, texture.height};
 
-        bool collision = touchesWall(box, map);
+        //bool collision = touchesWall(box, map, totalTiles);
+        bool collision = false;
 
-        if ((posX < 0) || (posX + texture.width > map->totalWidth) || collision) {
+        if ((posX < 0) || (posX + texture.width > mapWidth) || collision) {
             posX -= velX;
         }
-        if ((posY < 0) || (posY + texture.height > map->totalHeight) || collision) {
+        if ((posY < 0) || (posY + texture.height > mapHeight) || collision) {
             posY -= velY;
         }
     }
