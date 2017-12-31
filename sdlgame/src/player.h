@@ -3,16 +3,11 @@
 
 class Player {
 public:
-    int health;
-    int attack;
-    int defense;
-    int speed;
-
     static const int velocity = 5;
     Texture texture;
     int posX, posY;
     int velX, velY;
-    Player() : health(100), attack(10), defense(10), speed(100) {
+    Player() {
         posX = 0;
         posY = 0;
         velX = 0;
@@ -23,10 +18,6 @@ public:
         texture.free();
     }
     void debug() {
-        printf("health: %i\n", health);
-        printf("attack: %i\n", attack);
-        printf("defense: %i\n", defense);
-        printf("speed: %i\n", speed);
     }
 
     bool loadTexture(SDL_Renderer* renderer) {
@@ -45,39 +36,41 @@ public:
         texture.render(renderer, posX - camX, posY - camY);
     }
 
-    bool touchesWall(SDL_Rect box, Map* map, int totalTiles) {
-        bool collision = false;
-        // optimize? it loops through every tile
-        // in map even if not rendered
-        for (int i = 0; i < totalTiles; i++) {
-            if (map->tiles[i]->wasRendered == true && map->tiles[i]->solid == true) {
-                if (checkCollision(box, map->tiles[i]->box)) {
-                    collision = true;
-                    // if (map->tiles[i]->type == 487) {
-                    //     // change maps
-                    // }
-                    break;
-                }
-            }
-        }
-        return collision;
-    }
+    // bool touchesWall(SDL_Rect box, Map* map, int totalTiles) {
+    //     bool collision = false;
+    //     // optimize? it loops through every tile
+    //     // in map even if not rendered
+    //     for (int i = 0; i < totalTiles; i++) {
+    //         if (map->tiles[i]->wasRendered == true && map->tiles[i]->solid == true) {
+    //             if (checkCollision(box, map->tiles[i]->box)) {
+    //                 collision = true;
+    //                 // if (map->tiles[i]->type == 487) {
+    //                 //     // change maps
+    //                 // }
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     return collision;
+    // }
 
-    void move(Map* map, int mapWidth, int mapHeight, int totalTiles) {
+    MapEvent move(Map* map) {
         posX += velX;
         posY += velY;
 
         SDL_Rect box = {posX, posY, texture.width, texture.height};
 
-        //bool collision = touchesWall(box, map, totalTiles);
-        bool collision = false;
+        MapEvent event = map->collides(box);
 
-        if ((posX < 0) || (posX + texture.width > mapWidth) || collision) {
+        bool collision = event.type == "collision";
+
+        if ((posX < 0) || (posX + texture.width > map->totalWidth) || collision) {
             posX -= velX;
         }
-        if ((posY < 0) || (posY + texture.height > mapHeight) || collision) {
+        if ((posY < 0) || (posY + texture.height > map->totalHeight) || collision) {
             posY -= velY;
         }
+        return event;
     }
 
     void moveTo(int x, int y) {
@@ -116,7 +109,6 @@ public:
                 velX -= velocity;
                 break;
             }
-
         }
     }
 };
