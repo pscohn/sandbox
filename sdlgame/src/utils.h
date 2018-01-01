@@ -36,7 +36,7 @@ SDL_Texture* loadTexture(std::string path, Window win) {
     return newTexture;
 }
 
-bool checkCollision(SDL_Rect a, SDL_Rect b) {
+bool doesCollide(SDL_Rect a, SDL_Rect b, int range) {
     int leftA = a.x;
     int rightA = a.x + a.w;
     int topA = a.y;
@@ -46,25 +46,33 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
     int topB = b.y;
     int bottomB = b.y + b.h;
 
-
-    if (bottomA < topB) {
+    if (bottomA + range < topB) {
         return false;
     }
 
-    if (topA > bottomB) {
+    if (topA - range > bottomB) {
         return false;
     }
 
-    if (leftA > rightB) {
+    if (leftA - range > rightB) {
         return false;
     }
 
-    if (rightA < leftB) {
+    if (rightA + range < leftB) {
         return false;
     }
 
     return true;
 }
+
+bool checkCollision(SDL_Rect a, SDL_Rect b) {
+    return doesCollide(a, b, 0);
+}
+
+bool canInteract(SDL_Rect a, SDL_Rect b) {
+    return doesCollide(a, b, 32);
+}
+
 
 bool doesIntersect(int pointX, int pointY, int targetWidth, int targetHeight, int targetX, int targetY) {
     int targetRight = targetWidth + targetX;

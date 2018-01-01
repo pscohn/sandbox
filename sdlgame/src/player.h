@@ -1,5 +1,6 @@
 #include "texture.h"
 #include "map.h"
+#include "npc.h"
 
 class Player {
 public:
@@ -54,7 +55,7 @@ public:
     //     return collision;
     // }
 
-    MapEvent move(Map* map) {
+    MapEvent move(Map* map, NpcManager* npcManager) {
         posX += velX;
         posY += velY;
 
@@ -62,7 +63,8 @@ public:
 
         MapEvent event = map->collides(box);
 
-        bool collision = event.type == "collision";
+        bool collision = event.type == "collision" || npcManager->collides(box, map->type);
+
 
         if ((posX < 0) || (posX + texture.width > map->totalWidth) || collision) {
             posX -= velX;
@@ -78,7 +80,12 @@ public:
         posY = y;
     }
 
-    void handleEvent(SDL_Event& e) {
+    void interact(NpcManager* npcManager, MapType map) {
+        SDL_Rect box = {posX, posY, texture.width, texture.height};
+        npcManager->interact(box, map);
+    }
+
+    void handleEvent(SDL_Event& e, NpcManager* npcManager, MapType map) {
         if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
             switch (e.key.keysym.sym) {
             case SDLK_UP:
@@ -92,6 +99,9 @@ public:
                 break;
             case SDLK_RIGHT:
                 velX += velocity;
+                break;
+            case SDLK_a:
+                interact(npcManager, map);
                 break;
             }
         } else if (e.type == SDL_KEYUP && e.key.repeat == 0) {

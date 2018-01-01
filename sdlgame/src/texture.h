@@ -23,6 +23,12 @@ public:
         }
     }
 
+    void renderDebug(SDL_Renderer* renderer, int x, int y) {
+        printf("%i, %i, %i, %i, %i\n", renderer, x, y, width,height);
+        SDL_Rect renderQuad = {x, y, width, height};
+        SDL_RenderCopy(renderer, texture, NULL, &renderQuad);
+    }
+
     void render(SDL_Renderer* renderer, int x, int y) {
         SDL_Rect renderQuad = {x, y, width, height};
         SDL_RenderCopy(renderer, texture, NULL, &renderQuad);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" nextobjectid="21">
+<map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" nextobjectid="23">
  <properties>
   <property name="entry_x" type="int" value="22"/>
   <property name="entry_y" type="int" value="19"/>
@@ -158,5 +158,7 @@
   <object id="17" x="339" y="220" width="42" height="33"/>
   <object id="19" x="339" y="253" width="10" height="19"/>
   <object id="20" x="372" y="253" width="9" height="19"/>
+  <object id="21" x="10" y="377" width="171" height="45"/>
+  <object id="22" x="10" y="422" width="27" height="31"/>
  </objectgroup>
 </map>

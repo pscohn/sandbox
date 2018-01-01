@@ -9,9 +9,15 @@ struct MapEvent {
     std::string name;
 };
 
+enum MapType {
+    MAIN,
+    CAVE,
+};
+
 class Map {
 public:
     Tmx::Map *tmxmap;
+    MapType type;
     int totalWidth; // sprite width * map width * sprite scale
     int totalHeight;
 
@@ -28,8 +34,15 @@ public:
 
     void init(std::string map) {
 
+        if (map == "overworld.tmx") {
+            type = MAIN;
+        } else if (map == "cave.tmx") {
+            type = CAVE;
+        }
+
         tmxmap = new Tmx::Map();
         tmxmap->ParseFile(map);
+
 
         if (tmxmap->HasError())
         {

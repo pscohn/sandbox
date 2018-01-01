@@ -19,6 +19,7 @@
 #include "tilesheet.h"
 #include "tile.h"
 #include "map.h"
+#include "npc.h"
 
 
 const int SCREEN_FPS = 60;
@@ -28,8 +29,6 @@ const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 class Game {
 public:
     Window window;
-    std::vector<Button> buttons;
-    std::vector<Label> labels;
 
     Piano piano;
     Player player;
@@ -41,6 +40,7 @@ public:
     Tilesheet gbsheet;
     Map map;
     Map* currentMap;
+    NpcManager npcManager;
 
     bool paused;
 
@@ -84,29 +84,8 @@ public:
         startTime = SDL_GetTicks();
     }
 
-    void changeMap(std::string name) {
+    void loadMap(std::string name) {
         map.init(name);
-        player.moveTo(map.entryX, map.entryY);
-    }
-
-    void initGB() {
-        // avoid duplicate work?
-        tilesheet.init("grayscale.png", 400, 40, window.renderer);
-        //map.init("gb.map", 100, 100, tilesheet.numTiles);
-        player.moveTo(0, 0);
-    }
-
-    void initCave() {
-        // 1092 to move
-        tilesheet.init("Overworld.png", 1440, 40, window.renderer);
-        map.init("cave.csv");
-    }
-
-    void initOverworld() {
-        // 487 move to cave
-        //int collisionTiles[15] = {564, 565, 566, 364, 404, 444, 484, 485, 524, 525, 366, 406, 446, 486, 526};
-        tilesheet.init("Overworld.png", 1440, 40, window.renderer);
-        map.init("overworld.tmx");
         player.moveTo(map.entryX, map.entryY);
     }
 
@@ -129,7 +108,9 @@ public:
 
         bg = loadTexture("images/bg.png", window);
 
-        initOverworld();
+        tilesheet.init("Overworld.png", 1440, 40, window.renderer);
+        loadMap("overworld.tmx");
+        npcManager.createNpc(window.renderer);
 
         if (!floopLabel.create("Floops: 0", (SDL_Color){0, 0, 0}, gFont, &window)) {
             return false;
@@ -181,17 +162,9 @@ public:
         }
     }
 
-    void addButton(Button b) {
-        buttons.push_back(b);
-    }
-
-    void addLabel(Label b) {
-        labels.push_back(b);
-    }
-
     void poll_events(SDL_Event e, bool* quit) {
         while (SDL_PollEvent(&e) != 0) {
-            player.handleEvent(e);
+            player.handleEvent(e, &npcManager, map.type);
             if (e.type == SDL_QUIT) {
                 printf("goodbye\n");
                 *quit = true;
@@ -202,12 +175,6 @@ public:
                 switch (e.key.keysym.sym) {
                 case SDLK_q:
                     *quit = true;
-                    break;
-                case SDLK_m:
-                    initGB();
-                    break;
-                case SDLK_n:
-                    initOverworld();
                     break;
                 case SDLK_p:
                     paused = !paused;
@@ -235,9 +202,9 @@ public:
         capTimer.start();
 
         if (!paused) {
-            MapEvent event = player.move(&map);
+            MapEvent event = player.move(&map, &npcManager);
             if (event.type == "transition") {
-                changeMap(event.name);
+                loadMap(event.name);
             }
 
             camera.x = (player.posX + player.texture.width / 2) - SCREEN_WIDTH / 2;
@@ -252,6 +219,7 @@ public:
         //SDL_RenderCopyEx(window.renderer, bg, &camera, &renderQuad, 0.0, NULL, SDL_FLIP_NONE);
 
         map.render(window.renderer, tilesheet.texture.texture, tilesheet.tileClips, camera);
+        npcManager.render(window.renderer, camera.x, camera.y, map.type);
         player.render(window.renderer, camera.x, camera.y);
 
         //renderButtons();
@@ -269,9 +237,6 @@ public:
 
 
     void renderLabels() {
-        // for (int i = 0; i < labels.size(); i++) {
-        //     SDL_RenderCopy(window.renderer, labels[i].texture, NULL, &labels[i].renderQuad);
-        // }
         // floops.workFloopers();
         // floopLabel.updateText(floops.display());
         // SDL_RenderCopy(window.renderer, floopLabel.texture, NULL, &floopLabel.renderQuad);
@@ -292,19 +257,7 @@ public:
         SDL_RenderCopy(window.renderer, fpsLabel.texture, NULL, &fpsLabel.renderQuad);
     }
 
-    void renderButtons() {
-        for (int i = 0; i < buttons.size(); i++) {
-            SDL_RenderCopy(window.renderer, buttons[i].texture, NULL, &buttons[i].renderQuad);
-        }
-    }
-
     void checkButtonsClicked(int x, int y) {
-        for (int i = 0; i < buttons.size(); i++) {
-            buttons[i].wasClicked(x, y);
-        }
-        for (int i = 0; i < labels.size(); i++) {
-            labels[i].wasClicked(x, y);
-        }
         if (newFloop.wasClicked(x, y)) {
             floops.addFloop();
             floopLabel.create(floops.display(), (SDL_Color){0, 0, 0}, gFont, &window);
