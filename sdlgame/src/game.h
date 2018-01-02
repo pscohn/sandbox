@@ -106,10 +106,12 @@ public:
 
         player.loadTexture(window.renderer);
 
-        bg = loadTexture("images/bg.png", window);
+        bg = loadTexture("images/bg.png", window.renderer);
 
         tilesheet.init("Overworld.png", 1440, 40, window.renderer);
         loadMap("overworld.tmx");
+
+        npcManager.init(&window, gFont);
         npcManager.createNpc(window.renderer);
 
         if (!floopLabel.create("Floops: 0", (SDL_Color){0, 0, 0}, gFont, &window)) {
@@ -201,7 +203,7 @@ public:
 
         capTimer.start();
 
-        if (!paused) {
+        if (!paused && npcManager.currentDialog == "") {
             MapEvent event = player.move(&map, &npcManager);
             if (event.type == "transition") {
                 loadMap(event.name);
@@ -219,8 +221,8 @@ public:
         //SDL_RenderCopyEx(window.renderer, bg, &camera, &renderQuad, 0.0, NULL, SDL_FLIP_NONE);
 
         map.render(window.renderer, tilesheet.texture.texture, tilesheet.tileClips, camera);
-        npcManager.render(window.renderer, camera.x, camera.y, map.type);
         player.render(window.renderer, camera.x, camera.y);
+        npcManager.render(window.renderer, camera.x, camera.y, map.type);
 
         //renderButtons();
         renderLabels();

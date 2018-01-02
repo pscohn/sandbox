@@ -47,11 +47,12 @@ public:
         texture.render(renderer, posX - camX, posY - camY);
     }
 
-    void interact(SDL_Rect player) {
+    std::string interact(SDL_Rect player) {
         SDL_Rect box = {posX, posY, texture.width, texture.height};
         if (canInteract(player, box)) {
-            printf("%s\n", getDialogue().c_str());
+            return getDialogue();
         }
+        return "";
     }
 
     bool collides(SDL_Rect player) {
@@ -68,19 +69,49 @@ public:
 class NpcManager {
 public:
     std::vector<Npc*> npcs;
+    SDL_Texture* dialog; // 240x72
+    Window* window;
+    TTF_Font* font;
+    std::string currentDialog;
+    Label message;
+
+    NpcManager() {
+        message.setPos(340, 580);
+    }
+
+    void renderDialog() {
+        if (currentDialog != "") {
+            SDL_Rect renderQuad = {320, 560, 240 * 2, 72 * 2};
+            SDL_RenderCopy(window->renderer, dialog, NULL, &renderQuad);
+            message.create(currentDialog, (SDL_Color){0, 0, 0}, font, window);
+            SDL_RenderCopy(window->renderer, message.texture, NULL, &message.renderQuad);
+        }
+    }
+
+    void init(Window* win, TTF_Font* fnt) {
+        font = fnt;
+        window = win;
+        dialog = loadTexture("images/dialog.png", window->renderer);
+    }
+
     void createNpc(SDL_Renderer *renderer) {
         Npc* fred = new Npc();
         fred->loadTexture(renderer);
         npcs.push_back(fred);
     }
+
     void interact(SDL_Rect player, MapType map) {
         for (int i = 0; i < npcs.size(); i++) {
             if (npcs[i]->map == map) {
-                npcs[i]->interact(player);
+                if (currentDialog == "") {
+                    currentDialog = npcs[i]->interact(player);
+                } else {
+                    currentDialog = "";
+                }
             }
-
         }
     }
+
     bool collides(SDL_Rect player, MapType map) {
         for (int i = 0; i < npcs.size(); i++) {
             if (npcs[i]->map == map) {
@@ -93,6 +124,7 @@ public:
         return false;
     }
     void render(SDL_Renderer *renderer, int camX, int camY, MapType map) {
+        renderDialog();
         for (int i = 0; i < npcs.size(); i++) {
             if (npcs[i]->map == map) {
                 npcs[i]->render(renderer, camX, camY);
