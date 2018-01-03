@@ -203,7 +203,7 @@ public:
 
         capTimer.start();
 
-        if (!paused && npcManager.currentDialog == "") {
+        if (!paused && npcManager.currentDialog.size() == 0) {
             MapEvent event = player.move(&map, &npcManager);
             if (event.type == "transition") {
                 loadMap(event.name);
