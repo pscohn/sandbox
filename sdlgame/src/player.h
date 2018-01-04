@@ -80,12 +80,12 @@ public:
         posY = y;
     }
 
-    void interact(NpcManager* npcManager, MapType map) {
+    void interact(NpcManager* npcManager, MapType mapType) {
         SDL_Rect box = {posX, posY, texture.width, texture.height};
-        npcManager->interact(box, map);
+        npcManager->interact(box, mapType);
     }
 
-    void handleEvent(SDL_Event& e, NpcManager* npcManager, MapType map) {
+    void handleEvent(SDL_Event& e, NpcManager* npcManager, MapType mapType) {
         if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
             switch (e.key.keysym.sym) {
             case SDLK_UP:
@@ -101,7 +101,7 @@ public:
                 velX += velocity;
                 break;
             case SDLK_a:
-                interact(npcManager, map);
+                interact(npcManager, mapType);
                 break;
             }
         } else if (e.type == SDL_KEYUP && e.key.repeat == 0) {

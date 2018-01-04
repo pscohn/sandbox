@@ -9,15 +9,15 @@ class Npc {
 public:
     Texture texture;
     std::string name;
+    std::string path;
+    std::string dialogPath;
     MapType map;
-    int posX, posY;
+    int x, y;
 
-    Npc() {
-        name = "Fred";
-        posX = 100;
-        posY = 100;
-        map = CAVE;
-        //texture = new Texture();
+    Npc(std::string name, std::string path, std::string dialogPath, MapType map)
+        : name(name), path(path), dialogPath(dialogPath), map(map) {
+        x = 100;
+        y = 100;
     }
 
     ~Npc() {
@@ -32,11 +32,9 @@ public:
 
         std::vector<std::string> message;
 
-
         tinyxml2::XMLDocument doc;
         tinyxml2::XMLElement* pRoot;
-        doc.LoadFile("data/conv.xml");
-
+        doc.LoadFile(dialogPath.c_str());
 
         if (doc.FirstChild()->FirstChildElement("dialog") == NULL) {
             return message;
@@ -57,7 +55,7 @@ public:
 
         for (pRoot = pRoot->FirstChildElement("element"); pRoot != nullptr;
              pRoot = pRoot->NextSiblingElement("element")) {
-            std::string text = pRoot->GetText();
+            std::string text = name + ": " + pRoot->GetText();
             message.push_back(text);
         }
 
@@ -65,39 +63,34 @@ public:
     }
 
     bool loadTexture(SDL_Renderer* renderer) {
-        texture.load("man.png", renderer);
+        texture.load(path, renderer);
         if (texture.texture == NULL) {
-            printf("Unable to load image %s! SDL Error: %s\n",
-                   "man.png", SDL_GetError());
+            printf("Unable to load image %s! SDL Error: %s\n", path.c_str(), SDL_GetError());
             return false;
         }
-        texture.width = 16 * SPRITE_SCALE;
-        texture.height = 16 * SPRITE_SCALE;
+        texture.width = texture.width * SPRITE_SCALE;
+        texture.height = texture.height * SPRITE_SCALE;
         printf("loaded link\n");
         return true;
     }
 
     void render(SDL_Renderer *renderer, int camX, int camY) {
-        texture.render(renderer, posX - camX, posY - camY);
+        texture.render(renderer, x - camX, y - camY);
     }
 
-    std::vector<std::string> interact(SDL_Rect player) {
-        SDL_Rect box = {posX, posY, texture.width, texture.height};
-        if (canInteract(player, box)) {
-            return getDialogue();
-        }
-        std::vector<std::string> message;
-        return message;
+    bool canPlayerInteract(SDL_Rect player) {
+        SDL_Rect box = {x, y, texture.width, texture.height};
+        return canInteract(player, box);
     }
 
     bool collides(SDL_Rect player) {
-        SDL_Rect box = {posX, posY, texture.width, texture.height};
+        SDL_Rect box = {x, y, texture.width, texture.height};
         return checkCollision(player, box);
     }
 
-    void moveTo(int x, int y) {
-        posX = x;
-        posY = y;
+    void moveTo(int posX, int posY) {
+        x = posX;
+        y = posY;
     }
 };
 
@@ -131,10 +124,15 @@ public:
         }
     }
 
-    void createNpc(SDL_Renderer *renderer) {
-        Npc* fred = new Npc();
-        fred->loadTexture(renderer);
+    void createNpc() {
+        Npc* fred = new Npc("Fred", "images/fred.png", "data/fred.xml", CAVE);
+        fred->loadTexture(window->renderer);
         npcs.push_back(fred);
+
+        Npc* bob = new Npc("Bob", "images/bob.png", "data/bob.xml", CAVE);
+        bob->x = 250;
+        bob->loadTexture(window->renderer);
+        npcs.push_back(bob);
     }
 
     void interact(SDL_Rect player, MapType map) {
@@ -146,17 +144,22 @@ public:
         // Could be refactored to a dialog manager that communicates
         // with game and npc manager
         for (int i = 0; i < npcs.size(); i++) {
-            if (npcs[i]->map == map) {
+            if (npcs[i]->map == map && npcs[i]->canPlayerInteract(player)) {
                 if (currentDialog.size() == 0) {
-                    currentDialog = npcs[i]->interact(player);
+                    currentDialog = npcs[i]->getDialogue();
                 } else if (currentDialog.size() - 1 > dialogIndex) {
                     dialogIndex++;
                 } else {
                     currentDialog.clear();
                     dialogIndex = 0;
                 }
+                break;
             }
         }
+    }
+
+    bool inDialog() {
+        return currentDialog.size() > 0;
     }
 
     bool collides(SDL_Rect player, MapType map) {
@@ -166,10 +169,10 @@ public:
                     return true;
                 }
             }
-
         }
         return false;
     }
+
     void render(SDL_Renderer *renderer, int camX, int camY, MapType map) {
         renderDialog();
         for (int i = 0; i < npcs.size(); i++) {

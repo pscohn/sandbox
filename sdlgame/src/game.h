@@ -112,7 +112,7 @@ public:
         loadMap("overworld.tmx");
 
         npcManager.init(&window, gFont);
-        npcManager.createNpc(window.renderer);
+        npcManager.createNpc();
 
         if (!floopLabel.create("Floops: 0", (SDL_Color){0, 0, 0}, gFont, &window)) {
             return false;
@@ -203,7 +203,7 @@ public:
 
         capTimer.start();
 
-        if (!paused && npcManager.currentDialog.size() == 0) {
+        if (!paused && npcManager.inDialog() == false) {
             MapEvent event = player.move(&map, &npcManager);
             if (event.type == "transition") {
                 loadMap(event.name);
@@ -235,8 +235,6 @@ public:
         //Update screen
         SDL_RenderPresent(window.renderer);
     }
-
-
 
     void renderLabels() {
         // floops.workFloopers();

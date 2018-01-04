@@ -1,0 +1,14 @@
+<game>
+  <dialog>
+    <element>What's goin on?</element>
+  </dialog>
+  <dialog>
+    <element>I'm hungry.</element>
+  </dialog>
+  <dialog>
+    <element>...Where am I?</element>
+  </dialog>
+  <dialog>
+    <element>Paul is a cool guy.</element>
+  </dialog>
+</game>
