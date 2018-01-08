@@ -88,6 +88,9 @@ public:
                         event.type = "transition";
                         event.name = object->GetProperties().GetStringProperty("transition");
                         break;
+                    } else if (object->GetType() == "item") {
+                        event.type = "item";
+                        break;
                     }
                     event.type = "collision";
                     break;

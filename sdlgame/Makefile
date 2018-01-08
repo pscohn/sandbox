@@ -3,6 +3,7 @@ LIB = -lSDL2 -lSDL2_image -lsdl2_mixer -lSDL2_ttf \
 			-I/Users/paulcohn/scrapbox/tmxparser/src -I/Users/paulcohn/scrapbox/tmxparser/build \
 			-L/Users/paulcohn/scrapbox/tmxparser/build -ltmxparser \
 			-L/Users/paulcohn/scrapbox/tinyxml2 -ltinyxml2 \
+			-lfluidsynth
 
 
 game.o: src/main.cpp

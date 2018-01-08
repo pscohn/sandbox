@@ -19,8 +19,7 @@
 #include "tilesheet.h"
 #include "tile.h"
 #include "map.h"
-#include "npc.h"
-
+#include "npcmanager.h"
 
 const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
@@ -113,6 +112,7 @@ public:
 
         npcManager.init(&window, gFont);
         npcManager.createNpc();
+        piano.init(&window, gFont);
 
         if (!floopLabel.create("Floops: 0", (SDL_Color){0, 0, 0}, gFont, &window)) {
             return false;
@@ -166,14 +166,15 @@ public:
 
     void poll_events(SDL_Event e, bool* quit) {
         while (SDL_PollEvent(&e) != 0) {
-            player.handleEvent(e, &npcManager, map.type);
+            if (!piano.isOpen) {
+                player.handleEvent(e, &npcManager, map.type);
+            }
+            piano.checkEvent(e);
+
             if (e.type == SDL_QUIT) {
                 printf("goodbye\n");
                 *quit = true;
             } else if (e.type == SDL_KEYDOWN) {
-                if (piano.isOpen) {
-                    piano.checkEvent(e.key.keysym.sym);
-                }
                 switch (e.key.keysym.sym) {
                 case SDLK_q:
                     *quit = true;
@@ -203,7 +204,7 @@ public:
 
         capTimer.start();
 
-        if (!paused && npcManager.inDialog() == false) {
+        if (!paused && npcManager.inDialog() == false && piano.isOpen == false) {
             MapEvent event = player.move(&map, &npcManager);
             if (event.type == "transition") {
                 loadMap(event.name);
@@ -223,6 +224,7 @@ public:
         map.render(window.renderer, tilesheet.texture.texture, tilesheet.tileClips, camera);
         player.render(window.renderer, camera.x, camera.y);
         npcManager.render(window.renderer, camera.x, camera.y, map.type);
+        piano.render();
 
         //renderButtons();
         renderLabels();

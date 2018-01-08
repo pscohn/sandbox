@@ -1,3 +1,5 @@
+#include "synth.h"
+
 class Piano {
 private:
     Mix_Chunk *c4;
@@ -12,52 +14,122 @@ private:
 public:
     bool isOpen;
     void checkEvent();
+    SDL_Texture* pianoBg;
+    Window* window;
+    TTF_Font* font;
+    int noteLimit;
+    Synth synth;
 
     Piano() {
         isOpen = false;
-        c4 = NULL;
-        d4 = NULL;
-        e4 = NULL;
-        f4 = NULL;
-        g4 = NULL;
-        a4 = NULL;
-        b4 = NULL;
-        c5 = NULL;
+        noteLimit = 0;
+        // c4 = NULL;
+        // d4 = NULL;
+        // e4 = NULL;
+        // f4 = NULL;
+        // g4 = NULL;
+        // a4 = NULL;
+        // b4 = NULL;
+        // c5 = NULL;
     }
 
     ~Piano() {
-        Mix_FreeChunk(c4);
+        // Mix_FreeChunk(c4);
     }
 
-    void checkEvent(SDL_Keycode key) {
-        Mix_HaltChannel(-1); // halts all channels
-        switch (key) {
-        case SDLK_a:
-            Mix_PlayChannel(-1, c4, 0);
-            break;
-        case SDLK_s:
-            Mix_PlayChannel(-1, d4, 0);
-            break;
-        case SDLK_d:
-            Mix_PlayChannel(-1, e4, 0);
-            break;
-        case SDLK_f:
-            Mix_PlayChannel(-1, f4, 0);
-            break;
-        case SDLK_g:
-            Mix_PlayChannel(-1, g4, 0);
-            break;
-        case SDLK_h:
-            Mix_PlayChannel(-1, a4, 0);
-            break;
-        case SDLK_j:
-            Mix_PlayChannel(-1, b4, 0);
-            break;
-        case SDLK_k:
-            Mix_PlayChannel(-1, c5, 0);
-            break;
-        default:
-            break;
+    void init(Window* win, TTF_Font* fnt) {
+        font = fnt;
+        window = win;
+        pianoBg = loadTexture("images/piano.png", window->renderer);
+    }
+
+    void render() {
+        if (isOpen) {
+            SDL_Rect renderQuad = {200, 400, 471, 107};
+            SDL_RenderCopy(window->renderer, pianoBg, NULL, &renderQuad);
+        }
+    }
+
+    void open() {
+        isOpen = true;
+    }
+    void close() {
+        isOpen = false;
+    }
+
+    void checkEvent(SDL_Event& e) {
+        if (isOpen) {
+            if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
+                switch (e.key.keysym.sym) {
+                case SDLK_a:
+                    synth.playNote(60);
+                    break;
+                case SDLK_s:
+                    synth.playNote(62);
+                    break;
+                case SDLK_d:
+                    synth.playNote(64);
+                    break;
+                case SDLK_f:
+                    synth.playNote(65);
+                    break;
+                case SDLK_g:
+                    synth.playNote(67);
+                    break;
+                case SDLK_h:
+                    synth.playNote(69);
+                    break;
+                case SDLK_j:
+                    synth.playNote(71);
+                    break;
+                case SDLK_k:
+                    synth.playNote(72);
+                    break;
+                case SDLK_c:
+                    close();
+                    break;
+                default:
+                    break;
+                }
+            } else if (e.type == SDL_KEYUP && e.key.repeat == 0) {
+                switch (e.key.keysym.sym) {
+                case SDLK_a:
+                    synth.releaseNote(60);
+                    break;
+                case SDLK_s:
+                    synth.releaseNote(62);
+                    break;
+                case SDLK_d:
+                    synth.releaseNote(64);
+                    break;
+                case SDLK_f:
+                    synth.releaseNote(65);
+                    break;
+                case SDLK_g:
+                    synth.releaseNote(67);
+                    break;
+                case SDLK_h:
+                    synth.releaseNote(69);
+                    break;
+                case SDLK_j:
+                    synth.releaseNote(71);
+                    break;
+                case SDLK_k:
+                    synth.releaseNote(72);
+                    break;
+                default:
+                    break;
+                }
+            }
+        } else {
+            switch (e.key.keysym.sym) {
+            case SDLK_s:
+                open();
+                break;
+            default:
+                break;
+            }
+
         }
     }
 

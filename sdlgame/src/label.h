@@ -17,7 +17,6 @@ public:
     Window *window;
 
     Label() : width(100), height(100), x(200), y(200), texture(NULL) {
-        printf("label constructor\n");
         renderQuad.x = x;
         renderQuad.y = y;
         renderQuad.w = width;

@@ -1,6 +1,6 @@
 #include "texture.h"
 #include "map.h"
-#include "npc.h"
+#include "npcmanager.h"
 
 class Player {
 public:
@@ -80,9 +80,9 @@ public:
         posY = y;
     }
 
-    void interact(NpcManager* npcManager, MapType mapType) {
+    void interact(NpcManager* npcManager, MapType mapType, std::string interaction) {
         SDL_Rect box = {posX, posY, texture.width, texture.height};
-        npcManager->interact(box, mapType);
+        npcManager->interact(box, mapType, interaction);
     }
 
     void handleEvent(SDL_Event& e, NpcManager* npcManager, MapType mapType) {
@@ -101,7 +101,15 @@ public:
                 velX += velocity;
                 break;
             case SDLK_a:
-                interact(npcManager, mapType);
+                interact(npcManager, mapType, "talk");
+                break;
+            case SDLK_s:
+                interact(npcManager, mapType, "songBegin");
+                break;
+            case SDLK_c:
+                // works even if piano is not open
+                // refactor so event is only checked if piano is active
+                interact(npcManager, mapType, "songEnd");
                 break;
             }
         } else if (e.type == SDL_KEYUP && e.key.repeat == 0) {
