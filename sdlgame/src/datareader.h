@@ -38,6 +38,26 @@ std::vector<std::string> randomElementSetText(std::string dialogPath, std::strin
     return message;
 };
 
+std::vector<std::string> getTextAtPath(std::string songPath, std::string element) {
+    const char* xmlPath = element.c_str();
+    std::vector<std::string> message;
+
+    tinyxml2::XMLDocument doc;
+    tinyxml2::XMLElement* pRoot;
+    doc.LoadFile(songPath.c_str());
+
+    if (doc.FirstChild()->FirstChildElement(xmlPath) == NULL) {
+        return message;
+    }
+
+    for (pRoot = doc.FirstChild()->FirstChildElement(xmlPath); pRoot != nullptr;
+         pRoot = pRoot->NextSiblingElement(xmlPath)) {
+        message.push_back(pRoot->GetText());
+    }
+
+    return message;
+}
+
 std::vector<std::string> getRandomDialog(std::string dialogPath, std::string name) {
     return randomElementSetText(dialogPath, name, "dialog");
 };
@@ -48,6 +68,31 @@ std::vector<std::string> getRandomSongBeginDialog(std::string dialogPath, std::s
 
 std::vector<std::string> getRandomSongEndDialog(std::string dialogPath, std::string name) {
     return randomElementSetText(dialogPath, name, "songend");
+}
+
+std::vector<int> parseIntsByComma(std::string s) {
+    std::string delimiter = ",";
+    std::vector<int> ints;
+
+    size_t pos = 0;
+    std::string token;
+    while ((pos = s.find(delimiter)) != std::string::npos) {
+        token = s.substr(0, pos);
+        ints.push_back(stoi(s));
+        s.erase(0, pos + delimiter.length());
+    }
+    ints.push_back(stoi(s));
+    return ints;
+}
+
+std::vector<std::vector<int> > loadSong(std::string songPath) {
+    std::vector<std::vector<int> > tracks;
+    std::vector<std::string> tracksText = getTextAtPath(songPath, "track");
+    for (int i = 0; i < tracksText.size(); i++) {
+        std::vector<int> notes = parseIntsByComma(tracksText[i]);
+        tracks.push_back(notes);
+    }
+    return tracks;
 }
 
 #endif

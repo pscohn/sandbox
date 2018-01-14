@@ -1,5 +1,25 @@
 #include "synth.h"
 
+int start = 60;
+int noteA = start;
+int noteW = start + 1;
+int noteS = start + 2;
+int noteE = start + 3;
+int noteD = start + 4;
+int noteF = start + 5;
+int noteT = start + 6;
+int noteG = start + 7;
+int noteY = start + 8;
+int noteH = start + 9;
+int noteU = start + 10;
+int noteJ = start + 11;
+int noteK = start + 12;
+int noteO = start + 13;
+int noteL = start + 14;
+int noteP = start + 15;
+int noteSemi = start + 16;
+int noteQuote = start + 17;
+
 class Piano {
 private:
     Mix_Chunk *c4;
@@ -61,29 +81,68 @@ public:
         if (isOpen) {
             if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
                 switch (e.key.keysym.sym) {
+                case SDLK_v:
+                    synth.playSong();
+                    break;
+                case SDLK_n:
+                    synth.nextInstrument();
+                    break;
+                case SDLK_m:
+                    synth.prevInstrument();
+                    break;
                 case SDLK_a:
-                    synth.playNote(60);
+                    synth.playNote(noteA);
                     break;
                 case SDLK_s:
-                    synth.playNote(62);
+                    synth.playNote(noteS);
                     break;
                 case SDLK_d:
-                    synth.playNote(64);
+                    synth.playNote(noteD);
                     break;
                 case SDLK_f:
-                    synth.playNote(65);
+                    synth.playNote(noteF);
                     break;
                 case SDLK_g:
-                    synth.playNote(67);
+                    synth.playNote(noteG);
                     break;
                 case SDLK_h:
-                    synth.playNote(69);
+                    synth.playNote(noteH);
                     break;
                 case SDLK_j:
-                    synth.playNote(71);
+                    synth.playNote(noteJ);
                     break;
                 case SDLK_k:
-                    synth.playNote(72);
+                    synth.playNote(noteK);
+                    break;
+                case SDLK_l:
+                    synth.playNote(noteL);
+                    break;
+                case SDLK_w:
+                    synth.playNote(noteW);
+                    break;
+                case SDLK_e:
+                    synth.playNote(noteE);
+                    break;
+                case SDLK_t:
+                    synth.playNote(noteT);
+                    break;
+                case SDLK_y:
+                    synth.playNote(noteY);
+                    break;
+                case SDLK_u:
+                    synth.playNote(noteU);
+                    break;
+                case SDLK_o:
+                    synth.playNote(noteO);
+                    break;
+                case SDLK_p:
+                    synth.playNote(noteP);
+                    break;
+                case SDLK_SEMICOLON:
+                    synth.playNote(noteSemi);
+                    break;
+                case SDLK_QUOTE:
+                    synth.playNote(noteQuote);
                     break;
                 case SDLK_c:
                     close();
@@ -94,28 +153,58 @@ public:
             } else if (e.type == SDL_KEYUP && e.key.repeat == 0) {
                 switch (e.key.keysym.sym) {
                 case SDLK_a:
-                    synth.releaseNote(60);
+                    synth.releaseNote(noteA);
                     break;
                 case SDLK_s:
-                    synth.releaseNote(62);
+                    synth.releaseNote(noteS);
                     break;
                 case SDLK_d:
-                    synth.releaseNote(64);
+                    synth.releaseNote(noteD);
                     break;
                 case SDLK_f:
-                    synth.releaseNote(65);
+                    synth.releaseNote(noteF);
                     break;
                 case SDLK_g:
-                    synth.releaseNote(67);
+                    synth.releaseNote(noteG);
                     break;
                 case SDLK_h:
-                    synth.releaseNote(69);
+                    synth.releaseNote(noteH);
                     break;
                 case SDLK_j:
-                    synth.releaseNote(71);
+                    synth.releaseNote(noteJ);
                     break;
                 case SDLK_k:
-                    synth.releaseNote(72);
+                    synth.releaseNote(noteK);
+                    break;
+                case SDLK_l:
+                    synth.releaseNote(noteL);
+                    break;
+                case SDLK_w:
+                    synth.releaseNote(noteW);
+                    break;
+                case SDLK_e:
+                    synth.releaseNote(noteE);
+                    break;
+                case SDLK_t:
+                    synth.releaseNote(noteT);
+                    break;
+                case SDLK_y:
+                    synth.releaseNote(noteY);
+                    break;
+                case SDLK_u:
+                    synth.releaseNote(noteU);
+                    break;
+                case SDLK_o:
+                    synth.releaseNote(noteO);
+                    break;
+                case SDLK_p:
+                    synth.releaseNote(noteP);
+                    break;
+                case SDLK_SEMICOLON:
+                    synth.releaseNote(noteSemi);
+                    break;
+                case SDLK_QUOTE:
+                    synth.releaseNote(noteQuote);
                     break;
                 default:
                     break;
