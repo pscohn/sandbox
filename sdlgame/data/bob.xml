@@ -1,4 +1,5 @@
 <game>
+  <questStart>142</questStart>
   <dialog>
     <element>What's goin on?</element>
   </dialog>

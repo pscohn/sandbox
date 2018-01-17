@@ -12,12 +12,17 @@ public:
     std::string path;
     std::string dialogPath;
     MapType map;
+    std::vector<int> possibleQuests;
     int x, y;
 
     Npc(std::string name, std::string path, std::string dialogPath, MapType map)
         : name(name), path(path), dialogPath(dialogPath), map(map) {
         x = 100;
         y = 100;
+        possibleQuests = reader::getNpcQuests(dialogPath);
+        if (possibleQuests.size() > 0) {
+            printf("quest: %i\n", possibleQuests[0]);
+        }
     }
 
     ~Npc() {
@@ -28,15 +33,19 @@ public:
     }
 
     std::vector<std::string> getDialogue() {
-        return getRandomDialog(dialogPath, name);
+        return reader::getRandomDialog(dialogPath);
+    }
+
+    std::vector<int> checkForQuest() {
+        return reader::getNpcQuests(dialogPath);
     }
 
     std::vector<std::string> getSongBeginDialog() {
-        return getRandomSongBeginDialog(dialogPath, name);
+        return reader::getRandomSongBeginDialog(dialogPath);
     }
 
     std::vector<std::string> getSongEndDialog() {
-        return getRandomSongEndDialog(dialogPath, name);
+        return reader::getRandomSongEndDialog(dialogPath);
     }
 
     bool loadTexture(SDL_Renderer* renderer) {
@@ -47,7 +56,6 @@ public:
         }
         texture.width = texture.width * SPRITE_SCALE;
         texture.height = texture.height * SPRITE_SCALE;
-        printf("loaded link\n");
         return true;
     }
 

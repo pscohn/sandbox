@@ -20,10 +20,10 @@
 #include "tile.h"
 #include "map.h"
 #include "npcmanager.h"
+#include "QuestManager.h"
 
 const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
-
 
 class Game {
 public:
@@ -40,6 +40,7 @@ public:
     Map map;
     Map* currentMap;
     NpcManager npcManager;
+    QuestManager* questManager;
 
     bool paused;
 
@@ -110,7 +111,8 @@ public:
         tilesheet.init("Overworld.png", 1440, 40, window.renderer);
         loadMap("overworld.tmx");
 
-        npcManager.init(&window, gFont);
+        questManager = new QuestManager();
+        npcManager.init(&window, gFont, questManager);
         npcManager.createNpc();
         piano.init(&window, gFont);
 

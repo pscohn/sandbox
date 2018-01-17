@@ -4,7 +4,9 @@
 #include <tinyxml2.h>
 // TODO add error handling
 
-std::vector<std::string> randomElementSetText(std::string dialogPath, std::string name, std::string xmlPathStr) {
+namespace reader {
+
+std::vector<std::string> randomElementGetText(std::string dialogPath, std::string xmlPathStr) {
     const char* xmlPath = xmlPathStr.c_str();
     std::vector<std::string> message;
 
@@ -31,7 +33,7 @@ std::vector<std::string> randomElementSetText(std::string dialogPath, std::strin
 
     for (pRoot = pRoot->FirstChildElement("element"); pRoot != nullptr;
          pRoot = pRoot->NextSiblingElement("element")) {
-        std::string text = name + ": " + pRoot->GetText();
+        std::string text = pRoot->GetText();
         message.push_back(text);
     }
 
@@ -58,16 +60,50 @@ std::vector<std::string> getTextAtPath(std::string songPath, std::string element
     return message;
 }
 
-std::vector<std::string> getRandomDialog(std::string dialogPath, std::string name) {
-    return randomElementSetText(dialogPath, name, "dialog");
-};
+std::vector<int> getIntsAtPath(std::string songPath, std::string element) {
+    const char* xmlPath = element.c_str();
+    std::vector<int> result;
 
-std::vector<std::string> getRandomSongBeginDialog(std::string dialogPath, std::string name) {
-    return randomElementSetText(dialogPath, name, "songbegin");
+    tinyxml2::XMLDocument doc;
+    tinyxml2::XMLElement* pRoot;
+    doc.LoadFile(songPath.c_str());
+
+    if (doc.FirstChild()->FirstChildElement(xmlPath) == NULL) {
+        return result;
+    }
+
+    for (pRoot = doc.FirstChild()->FirstChildElement(xmlPath); pRoot != nullptr;
+         pRoot = pRoot->NextSiblingElement(xmlPath)) {
+        std::string s = pRoot->GetText();
+        result.push_back(stoi(s));
+    }
+
+    return result;
 }
 
-std::vector<std::string> getRandomSongEndDialog(std::string dialogPath, std::string name) {
-    return randomElementSetText(dialogPath, name, "songend");
+
+std::vector<std::string> getQuestStartDialog(int questId) {
+    return randomElementGetText("data/quests/" + std::to_string(questId) + ".xml", "questStartDialog");
+}
+
+std::vector<std::string> getQuestEndDialog(int questId) {
+    return randomElementGetText("data/quests/" + std::to_string(questId) + ".xml", "questEndDialog");
+}
+
+std::vector<std::string> getRandomDialog(std::string dialogPath) {
+    return randomElementGetText(dialogPath, "dialog");
+};
+
+std::vector<std::string> getRandomSongBeginDialog(std::string dialogPath) {
+    return randomElementGetText(dialogPath, "songbegin");
+}
+
+std::vector<std::string> getRandomSongEndDialog(std::string dialogPath) {
+    return randomElementGetText(dialogPath, "songend");
+}
+
+std::vector<int> getNpcQuests(std::string path) {
+    return getIntsAtPath(path, "questStart");
 }
 
 std::vector<int> parseIntsByComma(std::string s) {
@@ -93,6 +129,8 @@ std::vector<std::vector<int> > loadSong(std::string songPath) {
         tracks.push_back(notes);
     }
     return tracks;
+}
+
 }
 
 #endif

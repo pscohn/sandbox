@@ -4,6 +4,7 @@
 #include "npc.h"
 #include "map.h"
 #include "texture.h"
+#include "QuestManager.h"
 
 class NpcManager {
 public:
@@ -13,29 +14,35 @@ public:
     TTF_Font* font;
     std::vector<std::string> currentDialog;
     int dialogIndex;
+    int activeNpc;
+    QuestManager* questManager;
     Label message;
 
     NpcManager() {
         message.setPos(340, 580);
         dialogIndex = 0;
+        activeNpc = -1;
     }
 
-    void init(Window* win, TTF_Font* fnt) {
+    void init(Window* win, TTF_Font* fnt, QuestManager* quests) {
         font = fnt;
         window = win;
         dialogBg = loadTexture("images/dialog.png", window->renderer);
+        questManager = quests;
     }
 
     void renderDialog() {
         if (currentDialog.size() > 0) {
             SDL_Rect renderQuad = {320, 560, 240 * 2, 72 * 2};
             SDL_RenderCopy(window->renderer, dialogBg, NULL, &renderQuad);
-            message.create(currentDialog[dialogIndex], (SDL_Color){0, 0, 0}, font, window);
+            std::string m = npcs[activeNpc]->name + ": " + currentDialog[dialogIndex];
+            message.create(m, (SDL_Color){0, 0, 0}, font, window);
             SDL_RenderCopy(window->renderer, message.texture, NULL, &message.renderQuad);
         }
     }
 
     void createNpc() {
+        // should load dynamically based on map data?
         Npc* fred = new Npc("Fred", "images/fred.png", "data/fred.xml", CAVE);
         fred->loadTexture(window->renderer);
         npcs.push_back(fred);
@@ -57,16 +64,26 @@ public:
         for (int i = 0; i < npcs.size(); i++) {
             if (npcs[i]->map == map && npcs[i]->canPlayerInteract(player)) {
                 if (currentDialog.size() == 0 && interaction == "songBegin") {
+                    activeNpc = i;
                     currentDialog = npcs[i]->getSongBeginDialog();
                 } else if (currentDialog.size() == 0 && interaction == "songEnd") {
+                    activeNpc = i;
                     currentDialog = npcs[i]->getSongEndDialog();
                 } else if (currentDialog.size() == 0) {
-                    currentDialog = npcs[i]->getDialogue();
+                    activeNpc = i;
+                    int newQuestId = questManager->checkForAvailableQuest(npcs[i]->possibleQuests);
+                    if (newQuestId > 0) {
+                        questManager->begin(newQuestId);
+                        currentDialog = questManager->getDialogStart(newQuestId);
+                    } else {
+                        currentDialog = npcs[i]->getDialogue();
+                    }
                 } else if (currentDialog.size() - 1 > dialogIndex) {
                     dialogIndex++;
                 } else {
                     currentDialog.clear();
                     dialogIndex = 0;
+                    activeNpc = -1;
                 }
                 break;
             }

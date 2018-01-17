@@ -147,7 +147,7 @@ public:
     }
 
     void getSong() {
-        std::vector<std::vector<int> > trackData = loadSong("data/song.xml");
+        std::vector<std::vector<int> > trackData = reader::loadSong("data/song.xml");
         for (int i = 0; i < trackData.size(); i++) {
             std::vector<Melody> melody;
             for (int j = 0; j < trackData[i].size(); j++) {
