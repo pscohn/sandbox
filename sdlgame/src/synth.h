@@ -1,3 +1,6 @@
+#ifndef SYNTH_H_
+#define SYNTH_H_
+
 #include <fluidsynth.h>
 #include <unistd.h>
 #include "datareader.h"
@@ -183,3 +186,5 @@ public:
 unsigned int Synth::melodyStart;
 unsigned int Synth::now;
 int Synth::noteIndex;
+
+#endif

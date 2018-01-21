@@ -2,6 +2,8 @@
 #define DATAREADER_H_
 
 #include <tinyxml2.h>
+#include <vector>
+#include <string>
 // TODO add error handling
 
 namespace reader {

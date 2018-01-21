@@ -4,6 +4,7 @@
 #include "npc.h"
 #include "map.h"
 #include "texture.h"
+#include "label.h"
 #include "QuestManager.h"
 
 class NpcManager {

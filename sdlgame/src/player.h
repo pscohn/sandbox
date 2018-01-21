@@ -1,6 +1,14 @@
+#ifndef PLAYER_H_
+#define PLAYER_H_
+
 #include "texture.h"
 #include "map.h"
+#include "window.h"
 #include "npcmanager.h"
+
+enum Item {
+    BASIC_PIANO,
+};
 
 class Player {
 public:
@@ -8,6 +16,7 @@ public:
     Texture texture;
     int posX, posY;
     int velX, velY;
+    std::vector<int> inventory;
     Player() {
         posX = 0;
         posY = 0;
@@ -19,6 +28,15 @@ public:
         texture.free();
     }
     void debug() {
+    }
+
+    bool hasItem(Item item) {
+        for (int i = 0; i < inventory.size(); i++) {
+            if (i == item) {
+                return true;
+            }
+        }
+        return false;
     }
 
     bool loadTexture(SDL_Renderer* renderer) {
@@ -130,3 +148,5 @@ public:
         }
     }
 };
+
+#endif
